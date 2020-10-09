@@ -38,7 +38,7 @@
                 @foreach($lims_quotation_all as $key=>$quotation)
                 <?php
                         if($quotation->sale_status == 0)
-                            $status = trans('file.opened_order');
+                            $status = trans('file.null_order');
                         if($quotation->sale_status == 1)
                             $status = trans('file.Completed');
                         if($quotation->sale_status == 2)
@@ -49,14 +49,14 @@
 						if($quotation->workorder_status == 1)
                             $workorder_status = trans('file.opened_order');
 						if($quotation->workorder_status == 2)
-                            $workorder_status = trans('file.pending');
+                            $workorder_status = trans('file.waittingstock');
 						if($quotation->workorder_status == 3)
                             $workorder_status = trans('file.closed');
 						if($quotation->workorder_status == 4)
                             $workorder_status = trans('file.cancel');
 
                     ?>
-                <tr class="quotation-link" data-quotation='["{{date($general_setting->date_format, strtotime($quotation->created_at->toDateString()))}}", "{{$quotation->reference_no}}", "{{$status}}", "{{$quotation->biller->name ?? ""}}", "{{$quotation->biller->company_name ?? ""}}","{{$quotation->biller->email ??""}}", "{{$quotation->biller->phone_number ??""}}", "{{$quotation->biller->address ??""}}", "{{$quotation->biller->city ??""}}", "{{$quotation->customer->name}}", "{{$quotation->customer->phone_number}}", "{{$quotation->customer->address}}", "{{$quotation->customer->city}}", "{{$quotation->id}}", "{{$quotation->total_tax}}", "{{$quotation->total_discount}}", "{{$quotation->total_price}}", "{{$quotation->order_tax}}", "{{$quotation->order_tax_rate}}", "{{$quotation->order_discount}}", "{{$quotation->shipping_cost}}", "{{$quotation->grand_total}}", "{{$quotation->note}}", "{{$quotation->user->name}}", "{{$quotation->user->email}}"]'>
+                <tr class="quotation-link" data-quotation='["{{date($general_setting->date_format, strtotime($quotation->created_at->toDateString()))}}", "{{$quotation->reference_no}}", "{{$status}}", "{{$quotation->biller->name ?? ""}}", "{{$quotation->biller->company_name ?? ""}}","{{$quotation->biller->email ??""}}", "{{$quotation->biller->phone_number ??""}}", "{{$quotation->biller->address ??""}}", "{{$quotation->biller->city ??""}}", "{{$quotation->customer->name}}", "{{$quotation->customer->phone_number}}", "{{$quotation->customer->address}}", "{{$quotation->customer->city}}", "{{$quotation->id}}", "{{$quotation->total_tax}}", "{{$quotation->total_discount}}", "{{$quotation->total_price}}", "{{$quotation->order_tax}}", "{{$quotation->order_tax_rate}}", "{{$quotation->order_discount}}", "{{$quotation->shipping_cost}}", "{{$quotation->grand_total}}", "{{$quotation->note}}", "{{$quotation->user->name}}", "{{$quotation->user->email}}", "{{$quotation->completed_at}}"]'>
                     <td>{{$key}}</td>
                     <td>{{ date($general_setting->date_format, strtotime($quotation->created_at->toDateString())) . ' '. $quotation->created_at->toTimeString() }}</td>
                     <td>{{ $quotation->reference_no }}</td>
@@ -64,7 +64,7 @@
                     <td>{{ $quotation->customercar->chassis }}</td>
 
                     @if($quotation->sale_status == 0)
-                        <td><div class="badge badge-danger">{{$status}}</div></td>
+                        <td><div class="badge badge-primary">{{$status}}</div></td>
                     @endif
                     @if($quotation->sale_status == 1)
                         <td><div class="badge badge-success">{{$status}}</div></td>
@@ -72,13 +72,24 @@
                     @if($quotation->sale_status == 2)
                         <td><div class="badge badge-warning">{{$status}}</div></td>
                     @endif
-					 <td>{{ $workorder_status }}</td>
-
+					@if($quotation->workorder_status == 1)
+						<td><div class="badge badge-primary">{{ $workorder_status }}</div></td>
+					@endif
+					@if($quotation->workorder_status == 2)
+						<td><div class="badge badge-warning">{{ $workorder_status }}</div></td>
+					@endif
+					@if($quotation->workorder_status == 3)
+						<td><div class="badge badge-success">{{ $workorder_status }}</div></td>
+					@endif
+					@if($quotation->workorder_status == 4)
+						<td><div class="badge badge-danger">{{ $workorder_status }}</div></td>
+					@endif
+					
 
                     <td>
                         <a class="btn btn-success" href="{{ route('stockorders.edit', ['id' => $quotation->id]) }}"><i class="fa fa-plus"></i> {{trans('file.Request part')}}</a>
                         <a class="btn btn-success" href="{{ route('stockorders.service.edit', ['id' => $quotation->id]) }}"><i class="fa fa-plus"></i> {{trans('file.add_service')}}</a>
-                        <a class="btn btn-success" href="{{ route('stockorders.complete', ['id' => $quotation->id]) }}"><i class="fa fa-plus"></i> {{trans('file.complete')}}</a>
+                        <a class="btn btn-success" href="{{ route('workorder.complete', ['id' => $quotation->id]) }}"> {{trans('file.complete')}}</a>
 
                         <div class="btn-group">
                             <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{trans('file.action')}}
@@ -342,7 +353,7 @@
 
     function quotationDetails(quotation){
         $('input[name="quotation_id"]').val(quotation[13]);
-        var htmltext = '<strong>{{trans("file.Date")}}: </strong>'+quotation[0]+'<br><strong>{{trans("file.reference")}}: </strong>'+quotation[1]+'<br><strong>{{trans("file.Status")}}: </strong>'+quotation[2]+'<br><br><div class="row"><div class="col-md-6"><strong>{{trans("file.From")}}:</strong><br>'+quotation[3]+'<br>'+quotation[4]+'<br>'+quotation[5]+'<br>'+quotation[6]+'<br>'+quotation[7]+'<br>'+quotation[8]+'</div><div class="col-md-6"><div class="float-right"><strong>{{trans("file.To")}}:</strong><br>'+quotation[9]+'<br>'+quotation[10]+'<br>'+quotation[11]+'<br>'+quotation[12]+'</div></div></div>';
+        var htmltext = '<strong>{{trans("file.Date")}}: </strong>'+quotation[0]+'<br><strong>{{trans("file.reference")}}: </strong>'+quotation[1]+'<br><strong>{{trans("file.Status")}}: </strong>'+quotation[2]+'<br><strong>{{trans("file.completed_at")}}: </strong>'+quotation[25]+'<br><div class="row"><div class="col-md-6"><strong>{{trans("file.From")}}:</strong><br>'+quotation[3]+'<br>'+quotation[4]+'<br>'+quotation[5]+'<br>'+quotation[6]+'<br>'+quotation[7]+'<br>'+quotation[8]+'</div><div class="col-md-6"><div class="float-right"><strong>{{trans("file.To")}}:</strong><br>'+quotation[9]+'<br>'+quotation[10]+'<br>'+quotation[11]+'<br>'+quotation[12]+'</div></div></div>';
         $.get('workorder/product_quotation/' + quotation[13], function(data){
             $(".product-quotation-list tbody").remove();
             var name_code = data[0];

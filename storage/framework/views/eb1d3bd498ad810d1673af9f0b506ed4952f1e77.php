@@ -38,7 +38,7 @@
                 <?php $__currentLoopData = $lims_quotation_all; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key=>$quotation): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <?php
                         if($quotation->sale_status == 0)
-                            $status = trans('file.opened_order');
+                            $status = trans('file.null_order');
                         if($quotation->sale_status == 1)
                             $status = trans('file.Completed');
                         if($quotation->sale_status == 2)
@@ -49,14 +49,14 @@
 						if($quotation->workorder_status == 1)
                             $workorder_status = trans('file.opened_order');
 						if($quotation->workorder_status == 2)
-                            $workorder_status = trans('file.pending');
+                            $workorder_status = trans('file.waittingstock');
 						if($quotation->workorder_status == 3)
                             $workorder_status = trans('file.closed');
 						if($quotation->workorder_status == 4)
                             $workorder_status = trans('file.cancel');
 
                     ?>
-                <tr class="quotation-link" data-quotation='["<?php echo e(date($general_setting->date_format, strtotime($quotation->created_at->toDateString()))); ?>", "<?php echo e($quotation->reference_no); ?>", "<?php echo e($status); ?>", "<?php echo e($quotation->biller->name ?? ""); ?>", "<?php echo e($quotation->biller->company_name ?? ""); ?>","<?php echo e($quotation->biller->email ??""); ?>", "<?php echo e($quotation->biller->phone_number ??""); ?>", "<?php echo e($quotation->biller->address ??""); ?>", "<?php echo e($quotation->biller->city ??""); ?>", "<?php echo e($quotation->customer->name); ?>", "<?php echo e($quotation->customer->phone_number); ?>", "<?php echo e($quotation->customer->address); ?>", "<?php echo e($quotation->customer->city); ?>", "<?php echo e($quotation->id); ?>", "<?php echo e($quotation->total_tax); ?>", "<?php echo e($quotation->total_discount); ?>", "<?php echo e($quotation->total_price); ?>", "<?php echo e($quotation->order_tax); ?>", "<?php echo e($quotation->order_tax_rate); ?>", "<?php echo e($quotation->order_discount); ?>", "<?php echo e($quotation->shipping_cost); ?>", "<?php echo e($quotation->grand_total); ?>", "<?php echo e($quotation->note); ?>", "<?php echo e($quotation->user->name); ?>", "<?php echo e($quotation->user->email); ?>"]'>
+                <tr class="quotation-link" data-quotation='["<?php echo e(date($general_setting->date_format, strtotime($quotation->created_at->toDateString()))); ?>", "<?php echo e($quotation->reference_no); ?>", "<?php echo e($status); ?>", "<?php echo e($quotation->biller->name ?? ""); ?>", "<?php echo e($quotation->biller->company_name ?? ""); ?>","<?php echo e($quotation->biller->email ??""); ?>", "<?php echo e($quotation->biller->phone_number ??""); ?>", "<?php echo e($quotation->biller->address ??""); ?>", "<?php echo e($quotation->biller->city ??""); ?>", "<?php echo e($quotation->customer->name); ?>", "<?php echo e($quotation->customer->phone_number); ?>", "<?php echo e($quotation->customer->address); ?>", "<?php echo e($quotation->customer->city); ?>", "<?php echo e($quotation->id); ?>", "<?php echo e($quotation->total_tax); ?>", "<?php echo e($quotation->total_discount); ?>", "<?php echo e($quotation->total_price); ?>", "<?php echo e($quotation->order_tax); ?>", "<?php echo e($quotation->order_tax_rate); ?>", "<?php echo e($quotation->order_discount); ?>", "<?php echo e($quotation->shipping_cost); ?>", "<?php echo e($quotation->grand_total); ?>", "<?php echo e($quotation->note); ?>", "<?php echo e($quotation->user->name); ?>", "<?php echo e($quotation->user->email); ?>", "<?php echo e($quotation->completed_at); ?>"]'>
                     <td><?php echo e($key); ?></td>
                     <td><?php echo e(date($general_setting->date_format, strtotime($quotation->created_at->toDateString())) . ' '. $quotation->created_at->toTimeString()); ?></td>
                     <td><?php echo e($quotation->reference_no); ?></td>
@@ -64,7 +64,7 @@
                     <td><?php echo e($quotation->customercar->chassis); ?></td>
 
                     <?php if($quotation->sale_status == 0): ?>
-                        <td><div class="badge badge-danger"><?php echo e($status); ?></div></td>
+                        <td><div class="badge badge-primary"><?php echo e($status); ?></div></td>
                     <?php endif; ?>
                     <?php if($quotation->sale_status == 1): ?>
                         <td><div class="badge badge-success"><?php echo e($status); ?></div></td>
@@ -72,13 +72,24 @@
                     <?php if($quotation->sale_status == 2): ?>
                         <td><div class="badge badge-warning"><?php echo e($status); ?></div></td>
                     <?php endif; ?>
-					 <td><?php echo e($workorder_status); ?></td>
-
+					<?php if($quotation->workorder_status == 1): ?>
+						<td><div class="badge badge-primary"><?php echo e($workorder_status); ?></div></td>
+					<?php endif; ?>
+					<?php if($quotation->workorder_status == 2): ?>
+						<td><div class="badge badge-warning"><?php echo e($workorder_status); ?></div></td>
+					<?php endif; ?>
+					<?php if($quotation->workorder_status == 3): ?>
+						<td><div class="badge badge-success"><?php echo e($workorder_status); ?></div></td>
+					<?php endif; ?>
+					<?php if($quotation->workorder_status == 4): ?>
+						<td><div class="badge badge-danger"><?php echo e($workorder_status); ?></div></td>
+					<?php endif; ?>
+					
 
                     <td>
-                        <a class="btn btn-success" href="<?php echo e(route('stockorders.edit', ['id' => $quotation->id])); ?>"><i class="fa fa-plus"></i> <?php echo e(trans('file.add_port')); ?></a>
+                        <a class="btn btn-success" href="<?php echo e(route('stockorders.edit', ['id' => $quotation->id])); ?>"><i class="fa fa-plus"></i> <?php echo e(trans('file.Request part')); ?></a>
                         <a class="btn btn-success" href="<?php echo e(route('stockorders.service.edit', ['id' => $quotation->id])); ?>"><i class="fa fa-plus"></i> <?php echo e(trans('file.add_service')); ?></a>
-                        <a class="btn btn-success" href="<?php echo e(route('stockorders.complete', ['id' => $quotation->id])); ?>"><i class="fa fa-plus"></i> <?php echo e(trans('file.complete')); ?></a>
+                        <a class="btn btn-success" href="<?php echo e(route('workorder.complete', ['id' => $quotation->id])); ?>"> <?php echo e(trans('file.complete')); ?></a>
 
                         <div class="btn-group">
                             <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><?php echo e(trans('file.action')); ?>
@@ -345,7 +356,7 @@
 
     function quotationDetails(quotation){
         $('input[name="quotation_id"]').val(quotation[13]);
-        var htmltext = '<strong><?php echo e(trans("file.Date")); ?>: </strong>'+quotation[0]+'<br><strong><?php echo e(trans("file.reference")); ?>: </strong>'+quotation[1]+'<br><strong><?php echo e(trans("file.Status")); ?>: </strong>'+quotation[2]+'<br><br><div class="row"><div class="col-md-6"><strong><?php echo e(trans("file.From")); ?>:</strong><br>'+quotation[3]+'<br>'+quotation[4]+'<br>'+quotation[5]+'<br>'+quotation[6]+'<br>'+quotation[7]+'<br>'+quotation[8]+'</div><div class="col-md-6"><div class="float-right"><strong><?php echo e(trans("file.To")); ?>:</strong><br>'+quotation[9]+'<br>'+quotation[10]+'<br>'+quotation[11]+'<br>'+quotation[12]+'</div></div></div>';
+        var htmltext = '<strong><?php echo e(trans("file.Date")); ?>: </strong>'+quotation[0]+'<br><strong><?php echo e(trans("file.reference")); ?>: </strong>'+quotation[1]+'<br><strong><?php echo e(trans("file.Status")); ?>: </strong>'+quotation[2]+'<br><strong><?php echo e(trans("file.completed_at")); ?>: </strong>'+quotation[25]+'<br><div class="row"><div class="col-md-6"><strong><?php echo e(trans("file.From")); ?>:</strong><br>'+quotation[3]+'<br>'+quotation[4]+'<br>'+quotation[5]+'<br>'+quotation[6]+'<br>'+quotation[7]+'<br>'+quotation[8]+'</div><div class="col-md-6"><div class="float-right"><strong><?php echo e(trans("file.To")); ?>:</strong><br>'+quotation[9]+'<br>'+quotation[10]+'<br>'+quotation[11]+'<br>'+quotation[12]+'</div></div></div>';
         $.get('workorder/product_quotation/' + quotation[13], function(data){
             $(".product-quotation-list tbody").remove();
             var name_code = data[0];

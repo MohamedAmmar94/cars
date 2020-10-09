@@ -194,7 +194,20 @@ class ServicesController extends Controller
             $lims_category_list = Category::where('is_active', true)->get();
             $lims_unit_list = Unit::where('is_active', true)->get();
             $lims_tax_list = Tax::where('is_active', true)->get();
-            return view('services.create',compact('lims_product_list', 'lims_brand_list', 'lims_category_list', 'lims_unit_list', 'lims_tax_list'));
+			$last_serial=Product::where("code",'LIKE',"#S%")->orderBy("code","desc")->first();
+			//dd($last_serial->code);
+            if(!empty($last_serial)){
+				$arr=explode("#S",$last_serial->code);
+				$new_serial=(int)$arr[1] +1;
+				$new_serial=str_pad($new_serial, 5, '0', STR_PAD_LEFT);
+				
+				$new_arr=["#S",$new_serial];
+				$new_serial=implode($new_arr);
+			}else{
+				$new_serial="#S00000";
+			}
+			//dd($new_serial);
+			return view('services.create',compact('lims_product_list','new_serial', 'lims_brand_list', 'lims_category_list', 'lims_unit_list', 'lims_tax_list'));
         }
         else
             return redirect()->back()->with('not_permitted', 'Sorry! You are not allowed to access this module');

@@ -332,4 +332,48 @@ class WorkorderController extends Controller
         $lims_quotation_data->delete();
         return redirect('workorder')->with('not_permitted', 'Work Order deleted successfully');
     }
+	public function workorder_cancel($id){
+		$wo=Sale::where("id",$id)->first();
+		$msg ="Work Orders canceled failed!";
+		if(!empty($wo)){
+			$products=Product_Sale::where("sale_id",$wo->id)->get();
+			//dd($products);
+			foreach($products as $p){
+					$product=Product::where("id",$p->product_id)->first();
+					//dd($product->qty + $p->qty);
+					$product->qty=$product->qty + $p->qty;
+					$product->save;
+					$p->delete();
+			}
+			$wo->workorder_status=4;
+			$wo->sale_status=0;
+			$wo->save();
+			$msg ="Work Orders canceled successfully!";
+		}
+		return redirect('/workorder')->with("message",$msg);
+	}
+	public function workorder_closed($id){
+		$wo=Sale::where("id",$id)->first();
+		$msg ="Work Orders closed failed!";
+		if(!empty($wo)){
+			
+			$wo->workorder_status=3;
+			
+			$wo->save();
+			$msg ="Work Orders closed successfully!";
+		}
+		return redirect('/workorder')->with("message",$msg);
+	}
+	public function workorder_completed($id){
+		$wo=Sale::where("id",$id)->first();
+		$msg ="Work Orders completed failed!";
+		if(!empty($wo)){
+			
+			$wo->completed_at=date('Y-m-d H:i:s');
+			
+			$wo->save();
+			$msg ="Work Orders completed successfully!";
+		}
+		return redirect('/workorder')->with("message",$msg);
+	}
 }

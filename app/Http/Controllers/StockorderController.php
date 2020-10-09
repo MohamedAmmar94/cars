@@ -33,6 +33,7 @@ class StockorderController extends Controller
 {
     public function index()
     {
+		
         $role = Role::find(Auth::user()->role_id);
         if($role->hasPermissionTo('stockorder-index')){
             $permissions = Role::findByName($role->name)->permissions;
@@ -40,7 +41,7 @@ class StockorderController extends Controller
                 $all_permission[] = $permission->name;
             if(empty($all_permission))
                 $all_permission[] = 'dummy text';
-            
+           // dd(Auth::user()->role_id);
             if(Auth::user()->role_id > 2 && config('staff_access') == 'own')
                 $lims_quotation_all = Sale::with('biller', 'customer', 'user')->where('sale_status',1)
                     ->orderBy('id', 'desc')->where('user_id', Auth::id())->get();
@@ -229,6 +230,7 @@ class StockorderController extends Controller
 
     public function getProduct($id)
     {
+		//dd($id);
         $product_code = [];
         $product_name = [];
         $product_qty = [];
@@ -279,10 +281,12 @@ class StockorderController extends Controller
 
     public function limsProductSearch(Request $request)
     {
+		//dd("00");
         $todayDate = date('Y-m-d');
         $product_code = explode(" ",$request['data']);
         $product_variant_id = null;
         $lims_product_data = Product::where('code', $product_code[0])->first();
+		//dd($lims_product_data);
         if(!$lims_product_data) {
             $lims_product_data = Product::join('product_variants', 'products.id', 'product_variants.product_id')
                 ->select('products.*', 'product_variants.id as product_variant_id', 'product_variants.item_code', 'product_variants.additional_price')
@@ -341,11 +345,14 @@ class StockorderController extends Controller
         }
         $product[] = $lims_product_data->id;
         $product[] = $product_variant_id;
+        $product[] = $lims_product_data->qty;
+		//dd($product);
         return $product;
     }
 
     public function productQuotationData($id)
     {
+		
         $lims_product_quotation_data = ProductQuotation::where('quotation_id', $id)->get();
         foreach ($lims_product_quotation_data as $key => $product_quotation_data) {
             $product = Product::find($product_quotation_data->product_id);
@@ -381,7 +388,11 @@ class StockorderController extends Controller
             $lims_supplier_list = Supplier::where('is_active', true)->get();
             $lims_tax_list = Tax::where('is_active', true)->get();
             $lims_quotation_data = Sale::find($id);
-            $lims_product_quotation_data = Product_Sale::where('sale_id', $id)->get();
+            $lims_product_quotation_data = Product_Sale::with(["product"=>function($q){
+				return $q->where("type","standard");
+			}])->where('sale_id', $id)->get();
+			
+			
             return view('stockorders.edit',compact('lims_customer_list', 'lims_warehouse_list', 'lims_biller_list', 'lims_tax_list', 'lims_quotation_data','lims_product_quotation_data', 'lims_supplier_list'));
         }
         else
@@ -389,7 +400,7 @@ class StockorderController extends Controller
     } 
 	public function service_edit($id)
     {
-        $role = Role::find(Auth::user()->role_id);
+       $role = Role::find(Auth::user()->role_id);
         if($role->hasPermissionTo('stockorder-edit')){
             $lims_customer_list = Customer::where('is_active', true)->get();
             $lims_warehouse_list = Warehouse::where('is_active', true)->get();
@@ -397,15 +408,41 @@ class StockorderController extends Controller
             $lims_supplier_list = Supplier::where('is_active', true)->get();
             $lims_tax_list = Tax::where('is_active', true)->get();
             $lims_quotation_data = Sale::find($id);
-            $lims_product_quotation_data = Product_Sale::where('sale_id', $id)->get();
-            return view('stockorders.edit',compact('lims_customer_list', 'lims_warehouse_list', 'lims_biller_list', 'lims_tax_list', 'lims_quotation_data','lims_product_quotation_data', 'lims_supplier_list'));
+            $lims_product_quotation_data = Product_Sale::with(["product"=>function($q){
+				$q->where("type","digital");
+			}])->where('sale_id', $id)->get();
+            return view('stockorders.service',compact('lims_customer_list', 'lims_warehouse_list', 'lims_biller_list', 'lims_tax_list', 'lims_quotation_data','lims_product_quotation_data', 'lims_supplier_list'));
         }
         else
             return redirect()->back()->with('not_permitted', 'Sorry! You are not allowed to access this module');
     }
+	public function getserviceProduct($id)
+    {
+		//dd($id);
+        $product_code = [];
+        $product_name = [];
+        $product_qty = [];
+        $product_data = [];
+        $lims_product_data = Product::where("type","digital")->where("is_active",1)->get();
+		//dd($lims_product_data);
+		foreach ($lims_product_data as $lims_product_data)
+			{
+				$product_qty[] = $lims_product_data->qty;
+				//$lims_product_data = Product::find($product_warehouse->product_id);
+				$product_code[] =  $lims_product_data->code;
+				$product_name[] = $lims_product_data->name;
+				$product_type[] = $lims_product_data->type;
+				$product_id[] = $lims_product_data->id;
+				$product_list[] = null;
+				$qty_list[] = null;
+			}
+        $product_data = [$product_code, $product_name, $product_qty, $product_type, $product_id, $product_list, $qty_list];
+        return $product_data;
+    }
 
     public function update(Request $request, $id)
     {
+		//dd("update");
         $data = $request->except('document');
         //return dd($data);
         $document = $request->document;
@@ -429,6 +466,7 @@ class StockorderController extends Controller
         $lims_product_quotation_data = Product_Sale::where('sale_id', $id)->get();
         //update quotation table
         $data['sale_status']=2;
+        $data['workorder_status']=2;
         $data['payment_status']=2;
         $lims_quotation_data->update($data);
 
@@ -518,13 +556,125 @@ class StockorderController extends Controller
 
         return redirect('workorder')->with('message', $message);
     }
-
-
-    public function completeorder($id)
+	public function update_service(Request $request, $id)
     {
+		//dd("update_service");
+        $data = $request->except('document');
+        //return dd($data);
+        $document = $request->document;
+        if($document) {
+            $v = Validator::make(
+                [
+                    'extension' => strtolower($request->document->getClientOriginalExtension()),
+                ],
+                [
+                    'extension' => 'in:jpg,jpeg,png,gif,pdf,csv,docx,xlsx,txt',
+                ]
+            );
+            if ($v->fails())
+                return redirect()->back()->withErrors($v->errors());
+
+            $documentName = $document->getClientOriginalName();
+            $document->move('public/quotation/documents', $documentName);
+            $data['document'] = $documentName;
+        }
+        $lims_quotation_data = Sale::find($id);
         
+        //update quotation table
+       // $data['sale_status']=2;
+        $data['workorder_status']=2;
+        $data['payment_status']=2;
+        $lims_quotation_data->update($data);
+		$lims_product_quotation_data = Product_Sale::where('sale_id', $id)->get();
+        $product_id = $data['product_id'];
+        $product_variant_id = $data['product_variant_id'];
+        $qty = $data['qty'];
+        $sale_unit = $data['sale_unit'];
+        $net_unit_price = $data['net_unit_price'];
+        $discount = $data['discount'];
+        $tax_rate = $data['tax_rate'];
+        $tax = $data['tax'];
+        $total = $data['subtotal'];
+
+        foreach ($lims_product_quotation_data as $key => $product_quotation_data) {
+            $old_product_id[] = $product_quotation_data->product_id;
+            $lims_product_data = Product::select('id')->find($product_quotation_data->product_id);
+            if($product_quotation_data->variant_id) {
+                $lims_product_variant_data = ProductVariant::select('id')->FindExactProduct($product_quotation_data->product_id, $product_quotation_data->variant_id)->first();
+                $old_product_variant_id[] = $lims_product_variant_data->id;
+                if(!in_array($lims_product_variant_data->id, $product_variant_id))
+                    $product_quotation_data->delete();
+            }
+            else {
+                $old_product_variant_id[] = null;
+                if(!in_array($product_quotation_data->product_id, $product_id))
+                    $product_quotation_data->delete();
+            }
+        }
+
+        foreach ($product_id as $i => $pro_id) {
+            if($sale_unit[$i] != 'n/a'){
+                $lims_sale_unit_data = Unit::where('unit_name', $sale_unit[$i])->first();
+                $sale_unit_id = $lims_sale_unit_data->id;
+            }
+            else
+                $sale_unit_id = 0;
+            $lims_product_data = Product::select('id', 'name', 'is_variant')->find($pro_id);
+            if($sale_unit_id)
+                $mail_data['unit'][$i] = $lims_sale_unit_data->unit_code;
+            else
+                $mail_data['unit'][$i] = '';
+            $input['sale_id'] = $id;
+            $input['product_id'] = $pro_id;
+            $input['qty'] = $mail_data['qty'][$i] = $qty[$i];
+            $input['sale_unit_id'] = $sale_unit_id;
+            $input['net_unit_price'] = $net_unit_price[$i];
+            $input['discount'] = $discount[$i];
+            $input['tax_rate'] = $tax_rate[$i];
+            $input['tax'] = $tax[$i];
+            $input['total'] = $mail_data['total'][$i] = $total[$i];
+            $flag = 1;
+            if($lims_product_data->is_variant) {
+                $lims_product_variant_data = ProductVariant::select('variant_id')->where('id', $product_variant_id[$i])->first();
+                $input['variant_id'] = $lims_product_variant_data->variant_id;
+                if(in_array($product_variant_id[$i], $old_product_variant_id)) {
+                    ProductQuotation::where([
+                        ['product_id', $pro_id],
+                        ['variant_id', $input['variant_id']],
+                        ['quotation_id', $id]
+                    ])->update($input);
+                }
+                else {
+                    Product_Sale::create($input);
+                }
+                $variant_data = Variant::find($input['variant_id']);
+                $mail_data['products'][$i] = $lims_product_data->name . ' [' . $variant_data->name . ']';
+            }
+            else {
+                $input['variant_id'] = null;
+                if(!isset($old_product_id)){
+                    Product_Sale::create($input);
+                }elseif(in_array($pro_id, $old_product_id)) {
+                    Product_Sale::where([
+                        ['product_id', $pro_id],
+                        ['sale_id', $id]
+                    ])->update($input);
+                }
+                else {
+                    Product_Sale::create($input);
+                }
+                $mail_data['products'][$i] = $lims_product_data->name;
+            }
+        }
+
+        $message = 'Work Order updated successfully';
+
+
+        return redirect('workorder')->with('message', $message);
     }
 
+
+    
     public function createSale($id)
     {
         $lims_customer_list = Customer::where('is_active', true)->get();
@@ -552,12 +702,14 @@ class StockorderController extends Controller
 
     public function productWithoutVariant()
     {
+		
         return Product::ActiveStandard()->select('id', 'name', 'code')
                 ->whereNull('is_variant')->get();
     }
 
     public function productWithVariant()
     {
+		
         return Product::join('product_variants', 'products.id', 'product_variants.product_id')
                 ->ActiveStandard()
                 ->whereNotNull('is_variant')

@@ -47,13 +47,13 @@
                                             <p><strong><?php echo e($lims_quotation_data->reference_no); ?></strong></p>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group " >
+                                    <div class="col-md-4" hidden>
+                                        <div class="form-group "  >
                                             <label><?php echo e(trans('file.recived_person')); ?> *</label>
                                             <p><strong><?php echo e($lims_quotation_data->biller->name ??""); ?></strong></p>
                                             <input type="hidden" name="biller_id_hidden" value="<?php echo e($lims_quotation_data->biller_id); ?>" />
                                             <div hidden>
-                                                <select required name="biller_id" class="selectpicker form-control" data-live-search="true" data-live-search-style="begins" title="Select Biller...">
+                                                <select  name="biller_id" class="selectpicker form-control" data-live-search="true" data-live-search-style="begins" title="Select Biller...">
                                                     <?php $__currentLoopData = $lims_biller_list; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $biller): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                     <option value="<?php echo e($biller->id); ?>"><?php echo e($biller->name . ' (' . $biller->company_name . ')'); ?></option>
                                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -109,6 +109,7 @@
                                                     $temp_unit_operation_value = [];
                                                     ?>
                                                     <?php $__currentLoopData = $lims_product_quotation_data; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product_quotation): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+													<?php if(isset($product_quotation->product)): ?>
                                                     <tr>
                                                     <?php 
                                                         $product_data = DB::table('products')->find($product_quotation->product_id);
@@ -180,7 +181,7 @@
                                                         <input type="hidden" class="product-id" name="product_id[]" value="<?php echo e($product_data->id); ?>"/>
                                                         <input type="hidden" name="product_variant_id[]" value="<?php echo e($product_variant_id); ?>"/>
                                                         <input type="hidden" class="product-code" name="product_code[]" value="<?php echo e($product_data->code); ?>"/>
-                                                        <input type="hidden" class="product-price" name="product_price[]" value="<?php echo e($product_price); ?>"/>
+                                                        <input type="hidden" class="product-price" name="product_price[]" value="<?php echo e($product_price ??""); ?>"/>
                                                         <input type="hidden" class="sale-unit" name="sale_unit[]" value="<?php echo e($unit_name); ?>"/>
                                                         <input type="hidden" class="sale-unit-operator" value="<?php echo e($unit_operator); ?>"/>
                                                         <input type="hidden" class="sale-unit-operation-value" value="<?php echo e($unit_operation_value); ?>"/>
@@ -196,6 +197,7 @@
                                                         <input type="hidden" class="tax-value" name="tax[]" value="<?php echo e($product_quotation->tax); ?>" />
                                                         <input type="hidden" class="subtotal-value" name="subtotal[]" value="<?php echo e($product_quotation->total); ?>" />
                                                     </tr>
+													<?php endif; ?>
                                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                 </tbody>
                                                 <tfoot class="tfoot active">
@@ -537,6 +539,7 @@ lims_productcodeSearch.autocomplete({
 //Change quantity
 $("#myTable").on('input', '.qty', function() {
     rowindex = $(this).closest('tr').index();
+	console.log($(this).val());
     if($(this).val() < 1 && $(this).val() != '') {
       $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ') .qty').val(1);
       alert("Quantity can't be less than 1");
@@ -656,8 +659,9 @@ function productSearch(data) {
             $(".product-code").each(function(i) {
                 if ($(this).val() == data[1]) {
                     rowindex = i;
-                    var qty = parseFloat($('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ') .qty').val()) + 1;
-                    $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ') .qty').val(qty);
+                    /* var qty = parseFloat($('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ') .qty').val()) + 1;
+                    $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ') .qty').val(qty); */
+					var qty=data[11];
                     checkQuantity(String(qty), true);
                     flag = 0;
                 }
@@ -752,6 +756,7 @@ function checkQuantity(sale_qty, flag) {
             total_qty = sale_qty * operation_value[0];
         else if(operator[0] == '/')
             total_qty = sale_qty / operation_value[0];
+			//console.log("1"+total_qty);
         if (total_qty > parseFloat(product_qty[pos])) {
             alert('Quantity exceeds stock quantity!');
             if (flag) {
@@ -769,6 +774,7 @@ function checkQuantity(sale_qty, flag) {
         child_qty = qty_list[pos].split(',');
         $(child_id).each(function(index) {
             var position = product_id.indexOf(parseInt(child_id[index]));
+			//console.log("2"+position);
             if( parseFloat(sale_qty * child_qty[index]) > product_qty[position] ) {
                 alert('Quantity exceeds stock quantity!');
                 if (flag) {

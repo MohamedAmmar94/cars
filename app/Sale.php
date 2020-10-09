@@ -34,4 +34,8 @@ class Sale extends Model
     {
         return $this->belongsTo(CustomerCar::class,'car_id');
     }
+	public function product()
+    {
+        return $this->belongsToMany('App\Product', 'product_sales', 'sale_id', 'product_id');
+    }
 }

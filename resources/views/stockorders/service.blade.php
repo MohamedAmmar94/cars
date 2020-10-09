@@ -8,11 +8,11 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header d-flex align-items-center">
-                        <h4>{{trans('file.add_products')}}</h4>
+                        <h4>{{trans('file.add_products')}} sssssssssss</h4>
                     </div>
                     <div class="card-body">
                         <p class="italic"><small>{{trans('file.The field labels marked with * are required input fields')}}.</small></p>
-                        {!! Form::open(['route' => ['stockorders.update', $lims_quotation_data->id], 'method' => 'put', 'files' => true, 'id' => 'payment-form']) !!}
+                        {!! Form::open(['route' => ['stockorders.service.update', $lims_quotation_data->id], 'method' => 'put', 'files' => true, 'id' => 'payment-form']) !!}
                         <input type="hidden" name="sale_id" value="{{ $lims_quotation_data->id }}">
                         <div class="row">
                             <div class="col-md-12">
@@ -537,7 +537,6 @@ lims_productcodeSearch.autocomplete({
 //Change quantity
 $("#myTable").on('input', '.qty', function() {
     rowindex = $(this).closest('tr').index();
-	console.log($(this).val());
     if($(this).val() < 1 && $(this).val() != '') {
       $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ') .qty').val(1);
       alert("Quantity can't be less than 1");
@@ -646,6 +645,7 @@ $('#payment-form').on('submit',function(e){
 });
 
 function productSearch(data) {
+	//console.log("dddddddddd");
     $.ajax({
         type: 'GET',
         url: '../lims_product_search',
@@ -753,7 +753,6 @@ function checkQuantity(sale_qty, flag) {
             total_qty = sale_qty * operation_value[0];
         else if(operator[0] == '/')
             total_qty = sale_qty / operation_value[0];
-			//console.log("1"+total_qty);
         if (total_qty > parseFloat(product_qty[pos])) {
             alert('Quantity exceeds stock quantity!');
             if (flag) {
@@ -771,7 +770,6 @@ function checkQuantity(sale_qty, flag) {
         child_qty = qty_list[pos].split(',');
         $(child_id).each(function(index) {
             var position = product_id.indexOf(parseInt(child_id[index]));
-			//console.log("2"+position);
             if( parseFloat(sale_qty * child_qty[index]) > product_qty[position] ) {
                 alert('Quantity exceeds stock quantity!');
                 if (flag) {

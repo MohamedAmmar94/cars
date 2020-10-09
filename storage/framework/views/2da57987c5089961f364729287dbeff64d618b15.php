@@ -34,10 +34,8 @@
                                     <div class="form-group">
                                         <label><?php echo e(trans('file.service_code')); ?> * </label>
                                         <div class="input-group">
-                                            <input type="text" name="code" class="form-control" id="code" aria-describedby="code" required>
-                                            <div class="input-group-append">
-                                                <button id="genbutton" type="button" class="btn btn-sm btn-default" title="<?php echo e(trans('file.Generate')); ?>"><i class="fa fa-refresh"></i></button>
-                                            </div>
+                                            <input type="text" name="code" class="form-control" value="<?php echo e($new_serial ?? ""); ?>" id="code" aria-describedby="code" required>
+                                            
                                         </div>
                                         <span class="validation-msg" id="code-error"></span>
                                     </div>

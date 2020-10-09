@@ -22,13 +22,13 @@
                                             <p><strong>{{ $lims_sale_data->reference_no }}</strong></p>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-6" hidden>
                                         <div class="form-group">
                                             <label>{{trans('file.Biller')}} *</label>
-                                            <input type="text" readonly class="form-control" value="{{$lims_sale_data->biller->name}}">
+                                            <input type="text" readonly class="form-control" value="{{$lims_sale_data->biller->name ??""}}">
                                             <div hidden>
-                                                <input type="hidden" name="biller_id_hidden" value="{{$lims_sale_data->biller_id}}" />
-                                                <select required name="biller_id" class="selectpicker form-control" data-live-search="true" data-live-search-style="begins" title="Select Biller...">
+                                                <input type="hidden" name="biller_id_hidden" value="{{$lims_sale_data->biller_id ??""}}" />
+                                                <select  name="biller_id" class="selectpicker form-control" data-live-search="true" data-live-search-style="begins" title="Select Biller...">
                                                     @foreach($lims_biller_list as $biller)
                                                         <option value="{{$biller->id}}">{{$biller->name . ' (' . $biller->company_name . ')'}}</option>
                                                     @endforeach
@@ -170,7 +170,7 @@
                                                         <input type="hidden" class="product-code" name="product_code[]" value="{{$product_data->code}}"/>
                                                         <input type="hidden" name="product_id[]" value="{{$product_data->id}}"/>
                                                         <input type="hidden" name="product_variant_id[]" value="{{$product_variant_id}}"/>
-                                                        <input type="hidden" class="product-price" name="product_price[]" value="{{$product_price}}"/>
+                                                        <input type="hidden" class="product-price" name="product_price[]" value="{{$product_price ??""}}"/>
                                                         <input type="hidden" class="sale-unit" name="sale_unit[]" value="{{$unit_name}}"/>
                                                         <input type="hidden" class="sale-unit-operator" value="{{$unit_operator}}"/>
                                                         <input type="hidden" class="sale-unit-operation-value" value="{{$unit_operation_value}}"/>
