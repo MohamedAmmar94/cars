@@ -11,4 +11,7 @@ class ProductPurchase extends Model
 
         "purchase_id", "product_id", "variant_id", "qty", "recieved", "purchase_unit_id", "net_unit_cost", "discount", "tax_rate", "tax", "total"
     ];
+    public  function product(){
+        return $this->belongsTo(Product::class);
+    }
 }

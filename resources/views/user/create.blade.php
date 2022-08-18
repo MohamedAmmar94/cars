@@ -73,14 +73,14 @@
                                           @endforeach
                                         </select>
                                     </div>
-                                    <div class="form-group" id="biller-id">
-                                        <label><strong>{{trans('file.Biller')}} *</strong></label>
-                                        <select name="biller_id" required class="selectpicker form-control" data-live-search="true" data-live-search-style="begins" title="Select Biller...">
-                                          @foreach($lims_biller_list as $biller)
-                                              <option value="{{$biller->id}}">{{$biller->name}}</option>
-                                          @endforeach
-                                        </select>
-                                    </div>
+{{--                                    <div class="form-group" id="biller-id">--}}
+{{--                                        <label><strong>{{trans('file.Biller')}} *</strong></label>--}}
+{{--                                        <select name="biller_id" required class="selectpicker form-control" data-live-search="true" data-live-search-style="begins" title="Select Biller...">--}}
+{{--                                          @foreach($lims_biller_list as $biller)--}}
+{{--                                              <option value="{{$biller->id}}">{{$biller->name}}</option>--}}
+{{--                                          @endforeach--}}
+{{--                                        </select>--}}
+{{--                                    </div>--}}
                                     <div class="form-group" id="warehouseId">
                                         <label><strong>{{trans('file.Warehouse')}} *</strong></label>
                                         <select name="warehouse_id" required class="selectpicker form-control" data-live-search="true" data-live-search-style="begins" title="Select Warehouse...">

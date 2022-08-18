@@ -31,9 +31,12 @@
                     <th>{{trans('file.Image')}}</th>
                     <th>{{trans('file.name')}}</th>
                     <th>{{trans('file.Email')}}</th>
+                    <th>{{trans('file.national_id')}}</th>
+                    <th>{{trans('file.insurance_id')}}</th>
                     <th>{{trans('file.Phone Number')}}</th>
                     <th>{{trans('file.Department')}}</th>
                     <th>{{trans('file.Address')}}</th>
+                    <th>{{trans('file.documents')}}</th>
                     <th class="not-exported">{{trans('file.action')}}</th>
                 </tr>
             </thead>
@@ -50,6 +53,8 @@
                     @endif
                     <td>{{ $employee->name }}</td>
                     <td>{{ $employee->email}}</td>
+                    <td>{{ $employee->national_id}}</td>
+                    <td>{{ $employee->insurance_id}}</td>
                     <td>{{ $employee->phone_number}}</td>
                     <td>{{ $department->name }}</td>
                     <td>{{ $employee->address}}
@@ -57,6 +62,13 @@
                             @if($employee->state){{ ', '.$employee->state}}@endif
                             @if($employee->postal_code){{ ', '.$employee->postal_code}}@endif
                             @if($employee->country){{ ', '.$employee->country}}@endif</td>
+                    <td>
+                        @foreach($employee->documents as $document)
+                            <a   href="employee/files/{{$document->path}}" download>
+                                file{{$loop->index + 1}}</a>
+                        @endforeach
+
+                    </td>
                     <td>
                         <div class="btn-group">
                             <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{trans('file.action')}}
@@ -66,7 +78,11 @@
                             <ul class="dropdown-menu edit-options dropdown-menu-right dropdown-default" user="menu">
                                 @if(in_array("employees-edit", $all_permission))
                                 <li>
-                                    <button type="button" data-id="{{$employee->id}}" data-name="{{$employee->name}}" data-email="{{$employee->email}}" data-phone_number="{{$employee->phone_number}}" data-department_id="{{$employee->department_id}}" data-address="{{$employee->address}}" data-city="{{$employee->city}}" data-country="{{$employee->country}}" class="edit-btn btn btn-link" data-toggle="modal" data-target="#editModal"><i class="dripicons-document-edit"></i> {{trans('file.edit')}}</button> 
+                                    <button type="button" data-id="{{$employee->id}}" data-name="{{$employee->name}}"
+                                            data-email="{{$employee->email}}"
+                                            data-insurance_id="{{$employee->insurance_id}}"
+                                            data-national_id="{{$employee->national_id}}"
+                                            data-phone_number="{{$employee->phone_number}}" data-department_id="{{$employee->department_id}}" data-address="{{$employee->address}}" data-city="{{$employee->city}}" data-country="{{$employee->country}}" class="edit-btn btn btn-link" data-toggle="modal" data-target="#editModal"><i class="dripicons-document-edit"></i> {{trans('file.edit')}}</button>
                                 </li>
                                 @endif
                                 <li class="divider"></li>
@@ -120,6 +136,14 @@
                         <input type="email" name="email" required class="form-control">
                     </div>
                     <div class="col-md-6 form-group">
+                        <label>{{trans('file.national_id')}} *</label>
+                        <input type="text" name="national_id" required class="form-control">
+                    </div>
+                    <div class="col-md-6 form-group">
+                        <label>{{trans('file.insurance_id')}} *</label>
+                        <input type="text" name="insurance_id" required class="form-control">
+                    </div>
+                    <div class="col-md-6 form-group">
                         <label>{{trans('file.Phone Number')}} *</label>
                         <input type="text" name="phone_number" required class="form-control">
                     </div>
@@ -134,6 +158,10 @@
                     <div class="col-md-6 form-group">
                         <label>{{trans('file.Country')}}</label>
                         <input type="text" name="country" class="form-control">
+                    </div>
+                    <div class="col-md-6 form-group">
+                        <label>{{trans('file.documents')}}</label>
+                        <input type="file" name="documents[]" multiple class="form-control">
                     </div>
                 </div>
                 <div class="form-group">
@@ -172,6 +200,8 @@
         $("#editModal input[name='name']").val( $(this).data('name') );
         $("#editModal select[name='department_id']").val( $(this).data('department_id') );
         $("#editModal input[name='email']").val( $(this).data('email') );
+        $("#editModal input[name='insurance_id']").val( $(this).data('insurance_id') );
+        $("#editModal input[name='national_id']").val( $(this).data('national_id') );
         $("#editModal input[name='phone_number']").val( $(this).data('phone_number') );
         $("#editModal input[name='address']").val( $(this).data('address') );
         $("#editModal input[name='city']").val( $(this).data('city') );

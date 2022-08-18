@@ -26,6 +26,7 @@
                     <th class="not-exported"></th>
                     <th>{{trans('file.Image')}}</th>
                     <th>{{trans('file.Brand')}}</th>
+                    <th>{{trans('file.code')}}</th>
                     <th class="not-exported">{{trans('file.action')}}</th>
                 </tr>
             </thead>
@@ -40,6 +41,7 @@
                     <td>No Image</td>
                     @endif
                     <td>{{ $brand->title }}</td>
+                    <td>{{ $brand->code }}</td>
                     <td>
                         <div class="btn-group">
                             <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{trans('file.action')}}
@@ -77,6 +79,10 @@
             <div class="form-group">
                 <label>{{trans('file.Title')}} *</label>
                 {{Form::text('title',null,array('required' => 'required', 'class' => 'form-control', 'placeholder' => 'Type brand title...'))}}
+            </div>
+            <div class="form-group">
+                <label>{{trans('file.code')}} *</label>
+                {{Form::text('code',null,array('required' => 'required', 'class' => 'form-control', 'placeholder' => 'Type code...'))}}
             </div>
             <div class="form-group">
                 <label>{{trans('file.Image')}}</label>
@@ -138,7 +144,11 @@
             <label>{{trans('file.Title')}} *</label>
             {{Form::text('title',null, array('required' => 'required', 'class' => 'form-control'))}}
         </div>
-        <input type="hidden" name="brand_id">
+          <div class="form-group">
+              <label>{{trans('file.code')}} *</label>
+              {{Form::text('code',null,array('required' => 'required', 'class' => 'form-control', 'placeholder' => 'Type code...'))}}
+          </div>
+          <input type="hidden" name="brand_id">
         <div class="form-group">
             <label>{{trans('file.Image')}}</label>
             {{Form::file('image', array('class' => 'form-control'))}}
@@ -205,6 +215,7 @@
 
             $.get(url, function(data) {
                 $("input[name='title']").val(data['title']);
+                $("input[name='code']").val(data['code']);
                 $("input[name='brand_id']").val(data['id']);
 
             });

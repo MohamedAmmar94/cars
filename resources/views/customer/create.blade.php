@@ -61,6 +61,13 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
+                                    <label>{{trans('file.due_period')}}</label>
+                                    <input type="number" step="1" value="0" name="due_period" class="form-control">
+                               <small>in Days</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
                                     <label>{{trans('file.Address')}} *</label>
                                     <input type="text" name="address" required class="form-control">
                                 </div>

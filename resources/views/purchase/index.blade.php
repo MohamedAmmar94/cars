@@ -496,14 +496,14 @@
             {
                 'render': function(data, type, row, meta){
                     if(type === 'display'){
-                        data = '<div class="checkbox"><input type="checkbox" class="dt-checkboxes"><label></label></div>';
+                        data = '<div class="checkbox"><input name="purchaseIdArray[]" type="checkbox" class="dt-checkboxes"><label></label></div>';
                     }
 
                    return data;
                 },
                 'checkboxes': {
                    'selectRow': true,
-                   'selectAllRender': '<div class="checkbox"><input type="checkbox" class="dt-checkboxes"><label></label></div>'
+                   'selectAllRender': '<div class="checkbox"><input name="purchaseIdArray[]" type="checkbox" class="dt-checkboxes"><label></label></div>'
                 },
                 'targets': [0]
             }
@@ -574,8 +574,10 @@
                                     purchaseIdArray: purchase_id
                                 },
                                 success:function(data) {
-                                    dt.rows({ page: 'current', selected: true }).deselect();
+                                    console.log(data);
+                                    // dt.rows({ page: 'current', selected: true }).deselect();
                                     dt.rows({ page: 'current', selected: true }).remove().draw(false);
+                                    location.reload();
                                 }
                             });
                         }
@@ -660,6 +662,14 @@
             cols = '';
             cols += '<td colspan=6><strong>{{trans("file.Order Discount")}}:</strong></td>';
             cols += '<td>' + purchase[18] + '</td>';
+            newRow.append(cols);
+            newBody.append(newRow);
+
+            var newRow = $("<tr>");
+            cols = '';
+
+            cols += '<td colspan=6><strong>{{trans("file.consumables")}}:</strong></td>';
+            cols += '<td>' + purchase[25] + '</td>';
             newRow.append(cols);
             newBody.append(newRow);
 

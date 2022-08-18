@@ -59,7 +59,9 @@
               @csrf
               <div class="form-group-material">
                 <input id="login-username" type="text" name="email" required class="input-material" value="">
-                <label for="login-username" class="label-material">{{trans('file.email')}}</label>
+
+                <label for="login-username" class="label-material">{{trans('file.Email')}}</label>
+
                 @if ($errors->has('email'))
                     <p>
                         <strong>{{ $errors->first('email') }}</strong>
@@ -70,9 +72,9 @@
               <div class="form-group-material">
                 <input id="login-password" type="password" name="password" required class="input-material" value="">
                 <label for="login-password" class="label-material">{{trans('file.Password')}}</label>
-                @if ($errors->has('name'))
+                @if ($errors->has('password'))
                     <p>
-                        <strong>{{ $errors->first('name') }}</strong>
+                        <strong>{{ $errors->first('password') }}</strong>
                     </p>
                 @endif
               </div>

@@ -8,7 +8,7 @@ class Product extends Model
 {
     protected $fillable =[
 
-        "name", "code", "type", "barcode_symbology", "brand_id", "category_id", "unit_id", "purchase_unit_id", "sale_unit_id", "cost", "price", "qty", "alert_quantity", "promotion", "promotion_price", "starting_date", "last_date", "tax_id", "tax_method", "image", "file", "is_variant", "featured", "product_list", "qty_list", "price_list", "product_details", "is_active"
+        "name", "tst","code", "type", "part_number", "barcode_symbology","brand_id", "product_system_id", "category_id", "supplier_id", "system_id", "unit_id", "purchase_unit_id", "sale_unit_id", "cost", "price", "qty", "alert_quantity", "promotion", "promotion_price", "starting_date", "last_date", "tax_id", "tax_method", "image", "file", "is_variant", "featured", "product_list", "qty_list", "price_list", "product_details", "is_active"
     ];
 
     public function category()
@@ -46,4 +46,11 @@ class Product extends Model
             ['featured', 1]
         ]);
     }
+
+    public function getLastPurchaseCostAttribute()
+    {
+        $last_purchase=  ProductPurchase::where('product_id',$this->id)->orderByDesc('updated_at')->first();
+        return $last_purchase?$last_purchase->net_unit_cost:0;
+    }
+
 }

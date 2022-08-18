@@ -10,7 +10,7 @@ class Supplier extends Model
 
         "name", "image", "company_name", "vat_number",
         "email", "phone_number", "address", "city",
-        "state", "postal_code", "country", "is_active"
+        "state", "postal_code", "country", "is_active",'code'
         
     ];
 

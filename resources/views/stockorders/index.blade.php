@@ -315,7 +315,7 @@
     function quotationDetails(quotation){
         $('input[name="quotation_id"]').val(quotation[13]);
         var htmltext = '<div class="row"><div class="col-md-6"><strong>{{trans("file.Date")}}: </strong>'+quotation[0]+'<br><strong>{{trans("file.reference")}}: </strong>'+quotation[1]+'<br><strong>{{trans("file.Status")}}: </strong>'+quotation[2]+'<br><br></div><div class="col-md-6"><div class="float-left"><strong>{{trans("file.To")}}:</strong><br>'+quotation[9]+'<br>'+quotation[10]+'<br>'+quotation[11]+'<br>'+quotation[12]+'</div></div></div>';
-        $.get('workorder/product_quotation/' + quotation[13], function(data){
+        $.get('stockorders/product_quotation/' + quotation[13], function(data){
             $(".product-quotation-list tbody").remove();
             var name_code = data[0];
             var qty = data[1];
@@ -340,11 +340,12 @@
             });
 
             var newRow = $("<tr>");
+			
             cols = '';
             cols += '<td colspan=4><strong>{{trans("file.Total")}}:</strong></td>';
             cols += '<td>' + quotation[14] + '</td>';
             cols += '<td>' + quotation[15] + '</td>';
-            cols += '<td>' + quotation[16] + '</td>';
+            cols += '<td>' + data["total"] + '</td>';
             newRow.append(cols);
             newBody.append(newRow);
 
@@ -365,9 +366,10 @@
 
 
             var newRow = $("<tr>");
+			var g_total=data["total"] - parseFloat(quotation[20]);
             cols = '';
             cols += '<td colspan=6><strong>{{trans("file.grand total")}}:</strong></td>';
-            cols += '<td>' + quotation[21] + '</td>';
+            cols += '<td>' + g_total + '</td>';
             newRow.append(cols);
             newBody.append(newRow);
 

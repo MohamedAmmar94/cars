@@ -99,7 +99,8 @@
         </div>
         <p>{{trans('file.Date')}}: {{$lims_sale_data->created_at}}<br>
             {{trans('file.reference')}}: {{$lims_sale_data->reference_no}}<br>
-            {{trans('file.customer')}}: {{$lims_customer_data->name}}
+            {{trans('file.customer')}}: {{$lims_customer_data->name}}}<br>
+			{{trans('file.completed_at')}}: {{$lims_sale_data->completed_at}}
         </p>
         <table>
             <tbody>
@@ -129,7 +130,13 @@
                     <th style="text-align:right">{{number_format((float)$lims_sale_data->order_tax, 2, '.', '')}}</th>
                 </tr>
                 @endif
-                @if($lims_sale_data->order_discount)
+                @if($lims_sale_data->consumables)
+                <tr>
+                    <th colspan="2">{{trans('file.Order consumables')}}</th>
+                    <th style="text-align:right">{{number_format((float)$lims_sale_data->consumables, 2, '.', '')}}</th>
+                </tr>
+                @endif
+				@if($lims_sale_data->order_discount)
                 <tr>
                     <th colspan="2">{{trans('file.Order Discount')}}</th>
                     <th style="text-align:right">{{number_format((float)$lims_sale_data->order_discount, 2, '.', '')}}</th>

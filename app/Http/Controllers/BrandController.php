@@ -63,6 +63,7 @@ class BrandController extends Controller
         ]);
         $lims_brand_data = Brand::findOrFail($request->brand_id);
         $lims_brand_data->title = $request->title;
+        $lims_brand_data->code = $request->code;
         $image = $request->image;
         if ($image) {
             $ext = pathinfo($image->getClientOriginalName(), PATHINFO_EXTENSION);

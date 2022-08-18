@@ -16,7 +16,7 @@
 <section>
     <div class="container-fluid">
         <!-- Trigger the modal with a button -->
-        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#createModal"><i class="dripicons-plus"></i> {{trans("file.Add Category")}}</button>&nbsp;
+        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#createModal"><i class="dripicons-plus"></i> {{trans("file.Add Vehicle")}}</button>&nbsp;
 {{--        <button class="btn btn-primary" data-toggle="modal" data-target="#importCategory"><i class="dripicons-copy"></i> {{trans('file.Import Category')}}</button>--}}
     </div>
     <div class="table-responsive">
@@ -24,8 +24,8 @@
             <thead>
                 <tr>
                     <th class="not-exported"></th>
-                    <th>{{trans('file.category_name')}}</th>
-                    <th>{{trans('file.Parent Category')}}</th>
+                    <th>{{trans('file.Vehicle_name')}}</th>
+                    <th>{{trans('file.Parent Vehicle')}}</th>
                     <th>{{trans('file.Number of Product')}}</th>
                     <th>{{trans('file.Stock Quantity')}}</th>
                     <th>{{trans('file.Stock Worth (Price/Cost)')}}</th>
@@ -42,23 +42,27 @@
       <div class="modal-content">
         {!! Form::open(['route' => 'category.store', 'method' => 'post', 'files' => true]) !!}
         <div class="modal-header">
-          <h5 id="exampleModalLabel" class="modal-title">{{trans('file.Add Category')}}</h5>
+          <h5 id="exampleModalLabel" class="modal-title">{{trans('file.Add Vehicle')}}</h5>
           <button type="button" data-dismiss="modal" aria-label="Close" class="close"><span aria-hidden="true"><i class="dripicons-cross"></i></span></button>
         </div>
         <div class="modal-body">
           <p class="italic"><small>{{trans('file.The field labels marked with * are required input fields')}}.</small></p>
             <div class="row">
                 <div class="col-md-6 form-group">
-                    <label>{{trans('file.category_name')}} *</label>
-                    {{Form::text('name',null,array('required' => 'required', 'class' => 'form-control', 'placeholder' => 'ادخل اسم التصميف'))}}
+                    <label>{{trans('file.Vehicle_name')}} *</label>
+                    {{Form::text('name',null,array('required' => 'required', 'class' => 'form-control', 'placeholder' => 'ادخل اسم السيارة'))}}
+                </div>
+                <div class="col-md-6 form-group">
+                    <label>{{trans('file.code')}} *</label>
+                    {{Form::text('code',null,array('required' => 'required', 'class' => 'form-control', 'placeholder' => 'Type code...'))}}
                 </div>
 {{--                <div class="col-md-6 form-group">--}}
 {{--                    <label>{{trans('file.Image')}}</label>--}}
 {{--                    <input type="file" name="image" class="form-control">--}}
 {{--                </div>--}}
                 <div class="col-md-6 form-group">
-                    <label>{{trans('file.Parent Category')}}</label>
-                    {{Form::select('parent_id', $lims_categories, null, ['class' => 'form-control','placeholder' => 'تصنيف رئيسي '])}}
+                    <label>{{trans('file.Parent Vehicle')}}</label>
+                    {{Form::select('parent_id', $lims_categories, null, ['class' => 'form-control','placeholder' => 'السيارة رئيسي '])}}
                 </div> 
             </div>
                            
@@ -76,15 +80,19 @@
     <div class="modal-content">
         {{ Form::open(['route' => ['category.update', 1], 'method' => 'PUT', 'files' => true] ) }}
       <div class="modal-header">
-        <h5 id="exampleModalLabel" class="modal-title">{{trans('file.Update Category')}}</h5>
+        <h5 id="exampleModalLabel" class="modal-title">{{trans('file.Update Vehicle')}}</h5>
         <button type="button" data-dismiss="modal" aria-label="Close" class="close"><span aria-hidden="true"><i class="dripicons-cross"></i></span></button>
       </div>
       <div class="modal-body">
         <p class="italic"><small>{{trans('file.The field labels marked with * are required input fields')}}.</small></p>
         <div class="row">
             <div class="col-md-6 form-group">
-                <label>{{trans('file.category_name')}} *</label>
+                <label>{{trans('file.Vehicle_name')}} *</label>
                 {{Form::text('name',null, array('required' => 'required', 'class' => 'form-control'))}}
+            </div>
+            <div class="col-md-6 form-group">
+                <label>{{trans('file.code')}} *</label>
+                {{Form::text('code',null,array('required' => 'required', 'class' => 'form-control', 'placeholder' => 'Type code...'))}}
             </div>
             <input type="hidden" name="category_id">
 {{--            <div class="col-md-6 form-group">--}}
@@ -92,7 +100,7 @@
 {{--                <input type="file" name="image" class="form-control">--}}
 {{--            </div>--}}
             <div class="col-md-6 form-group">
-                <label>{{trans('file.Parent Category')}}</label>
+                <label>{{trans('file.Parent Vehicle')}}</label>
                 <select name="parent_id" class="form-control selectpicker" id="parent">
                     <option value=""> {{trans('file.parent')}}</option>
                     @foreach($lims_category_all as $category)
@@ -116,12 +124,12 @@
       <div class="modal-content">
         {!! Form::open(['route' => 'category.import', 'method' => 'post', 'files' => true]) !!}
         <div class="modal-header">
-          <h5 id="exampleModalLabel" class="modal-title">{{trans('file.Import Category')}}</h5>
+          <h5 id="exampleModalLabel" class="modal-title">{{trans('file.Import Vehicle')}}</h5>
           <button type="button" data-dismiss="modal" aria-label="Close" class="close"><span aria-hidden="true"><i class="dripicons-cross"></i></span></button>
         </div>
         <div class="modal-body">
             <p class="italic"><small>{{trans('file.The field labels marked with * are required input fields')}}.</small></p>
-           <p>{{trans('file.The correct column order is')}} (name*, parent_category) {{trans('file.and you must follow this')}}.</p>
+           <p>{{trans('file.The correct column order is')}} (name*, parent_vehicle) {{trans('file.and you must follow this')}}.</p>
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
@@ -149,7 +157,7 @@
     $("ul#product #category-menu").addClass("active");
 
     function confirmDelete() {
-      if (confirm("If you delete category all products under this category will also be deleted. Are you sure want to delete?")) {
+      if (confirm("If you delete Vehicle all products under this Vehicle will also be deleted. Are you sure want to delete?")) {
           return true;
       }
       return false;
@@ -170,6 +178,8 @@
           
           $.get(url, function(data){
             $("#editModal input[name='name']").val(data['name']);
+            $("#editModal input[name='code']").val(data['code']);
+            $("#editModal select[name='parent_id']").val(data['parent_id']);
             $("#editModal select[name='parent_id']").val(data['parent_id']);
             $("#editModal input[name='category_id']").val(data['id']);
             $('.selectpicker').selectpicker('refresh');
@@ -269,7 +279,7 @@
                                 category_id[i-1] = $(this).closest('tr').data('id');
                             }
                         });
-                        if(category_id.length && confirm("If you delete category all products under this category will also be deleted. Are you sure want to delete?")) {
+                        if(category_id.length && confirm("If you delete Vehicle all products under this Vehicle will also be deleted. Are you sure want to delete?")) {
                             $.ajax({
                                 type:'POST',
                                 url:'category/deletebyselection',
@@ -283,7 +293,7 @@
                             });
                         }
                         else if(!category_id.length)
-                            alert('No category is selected!');
+                            alert('No Vehicle is selected!');
                     }
                     else
                         alert('This feature is disable for demo!');

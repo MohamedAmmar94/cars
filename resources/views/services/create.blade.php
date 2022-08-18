@@ -7,7 +7,7 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header d-flex align-items-center">
-                        <h4>{{trans('file.add_service')}}</h4>
+                        <h4>{{trans('file.Add Service Product')}}</h4>
                     </div>
                     <div class="card-body">
                         <p class="italic"><small>{{trans('file.The field labels marked with * are required input fields')}}.</small></p>
@@ -29,6 +29,13 @@
                                     <div class="form-group">
                                         <label>{{trans('file.service_name')}} * </label>
                                         <input type="text" name="name" class="form-control" id="name" aria-describedby="name" required>
+                                        <span class="validation-msg" id="name-error"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>{{trans('file.tst')}} * </label>
+                                        <input type="time" name="tst" class="form-control" id="tst" aria-describedby="tst" required>
                                         <span class="validation-msg" id="name-error"></span>
                                     </div>
                                 </div>

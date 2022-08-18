@@ -13,7 +13,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label>{{trans('file.name')}} *</strong> </label>
+                                    <label>{{trans('file.name')}} *</label>
                                     <input type="text" name="employee_name" required class="form-control">
                                 </div>
                                 <div class="form-group">
@@ -43,6 +43,14 @@
                                     @endif
                                 </div>
                                 <div class="form-group">
+                                    <label>{{trans('file.national_id')}} *</label>
+                                    <input type="text" name="national_id" required class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>{{trans('file.insurance_id')}} *</label>
+                                    <input type="text" name="insurance_id" required class="form-control">
+                                </div>
+                                <div class="form-group">
                                     <label>{{trans('file.Phone Number')}} *</label>
                                     <input type="text" name="phone_number" required class="form-control">
                                 </div>
@@ -57,6 +65,10 @@
                                 <div class="form-group">
                                     <label>{{trans('file.Country')}}</label>
                                     <input type="text" name="country" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>{{trans('file.documents')}}</label>
+                                    <input type="file" name="documents[]" multiple  class="form-control">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -94,14 +106,14 @@
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="form-group" id="biller">
-                                        <label>{{trans('file.Biller')}} *</label>
-                                        <select name="biller_id" class="selectpicker form-control" data-live-search="true" data-live-search-style="begins" title="Select Biller...">
-                                            @foreach($lims_biller_list as $biller)
-                                            <option value="{{$biller->id}}">{{$biller->name}} ({{$biller->company_name}})</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
+{{--                                    <div class="form-group" id="biller">--}}
+{{--                                        <label>{{trans('file.Biller')}} *</label>--}}
+{{--                                        <select name="biller_id" class="selectpicker form-control" data-live-search="true" data-live-search-style="begins" title="Select Biller...">--}}
+{{--                                            @foreach($lims_biller_list as $biller)--}}
+{{--                                            <option value="{{$biller->id}}">{{$biller->name}} ({{$biller->company_name}})</option>--}}
+{{--                                            @endforeach--}}
+{{--                                        </select>--}}
+{{--                                    </div>--}}
                                 </div>
                             </div>
                             <div class="col-md-12">

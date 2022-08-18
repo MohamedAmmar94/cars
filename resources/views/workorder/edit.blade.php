@@ -29,7 +29,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>{{trans('file.customercar')}} *</label>
-                                            <select id="car_id" name="car_id" required class="selectpicker form-control" data-live-search="true"  data-live-search-style="begins" title=" {{ trans('file.choose')." ".trans('file.customercar')}} ..">
+                                            <select id="car_id" name="car_id" required  class="selectpicker form-control" data-live-search="true"  data-live-search-style="begins" title=" {{ trans('file.choose')." ".trans('file.customercar')}} ..">
                                                 @foreach($lims_quotation_data->customer->cars as $car)
                                                     <option value="{{$car->id}}" {{ ($lims_quotation_data->car_id==$car->id) ? 'selected' : '' }}>{{$car->chassis}}</option>
                                                 @endforeach
@@ -82,13 +82,60 @@
 
 
 
+                                <!-- <?php /* ?>
                                 <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label>{{trans('file.Note')}}</label>
-                                            <textarea rows="5" name="sale_note" class="form-control">{{ $lims_quotation_data->sale_note }}</textarea>
-                                        </div>
-                                    </div>
+                                	<div class="col-md-12">
+                                		<div class="form-group">
+                                			<label>{{trans('file.Note')}}</label>
+                                			<textarea rows="5" name="sale_note" class="form-control"></textarea>
+                                		</div>
+                                	</div>
+                                </div><?php */ ?>-->
+								<div class="row">
+                                	<div class="col-md-6">
+                                		<div class="form-group">
+                                			<label>{{trans('file.backlog')}}</label>
+											 
+												  <div class="customer_records" style="margin: 10px 0;">
+												  <input name="id[]" value="new" type="hidden">
+													<input name="backlog[]" class="form-control" 
+														style="width: 92%;display:inline-flex;" placeholder="add backlog" type="text" >
+													<a class="extra-fields-customer btn btn-primary" href="javascript:void(0);">
+														<i class="fa fa-plus-circle"></i>
+														</a>
+												  </div>
+
+												  <div class="customer_records_dynamic">
+												  @if(isset($lims_quotation_data->CustomerCar->backlog) && count($lims_quotation_data->CustomerCar->backlog)>0)
+														@foreach($lims_quotation_data->CustomerCar->backlog as $backlog)
+															<div class="remove" style="margin: 10px 0;">
+																<input name="id[]" value="{{$backlog->id}}" type="hidden">
+																<input name="backlog[]" class="form-control" style="width: 92%;display:inline-flex;" placeholder="add backlog" type="text" value="{{$backlog->title}}">
+																<a href="javascript:void(0);" class="btn btn-danger remove-field btn-remove-customer">
+																	<i class="fa fa-minus-circle"></i>
+																</a>
+															</div>
+														@endforeach
+												  @endif
+												  </div>
+										</div>
+                                	</div>
+									<div class="col-md-6 perivous-km">
+									@if(isset($pm) && !empty($pm))
+										<div class="row">
+											<div class="col-md-2"> PM :</div>
+											<div class="col-md-3"> {{$pm->mill_age}}</div>
+											<div class="col-md-6"> {{$pm->created_at}}</div>
+										</div>
+									@endif
+									@if(isset($cm) && !empty($cm))
+										<div class="row">
+											<div class="col-md-2"> CM :</div>
+											<div class="col-md-3"> {{$cm->mill_age}}</div>
+											<div class="col-md-6"> {{$cm->created_at}}</div>
+										</div>
+									@endif
+									</div>
                                 </div>
                                 <div class="form-group">
                                     <input type="submit" value="{{trans('file.submit')}}" class="btn btn-primary" id="submit-button">
@@ -105,6 +152,53 @@
    </section>
 
 <script type="text/javascript">
+
+$('#car_id').on('change', function() {
+   var id=this.value; 
+   
+  // console.log(id);
+   $.get('/workorder/getbacklog/' + id, function(data) {
+	  
+	  
+	   $('.customer_records_dynamic').html("");
+	   $('.perivous-km').html("");
+	 //  console.log(data);
+	   if(data.backlogs.length >0){
+			$.each(data.backlogs, function(index) {   
+		
+				$('.customer_records_dynamic').append('<div class="remove" style="margin: 10px 0;"><input name="id[]" value="'+data.backlogs[index].id+'" type="hidden"><input name="backlog[]" class="form-control" style="width: 92%;display:inline-flex;" placeholder="add backlog" type="text"value='+data.backlogs[index].title+'><a href="javascript:void(0);" class="btn btn-danger remove-field btn-remove-customer"><i class="fa fa-minus-circle"></i></a></div>');
+				
+			});
+	   }
+	   if(data.pm !=null){
+		   $('.perivous-km').append('<div class="row"><div class="col-md-2"> PM :</div><div class="col-md-3"> '+data.pm.mill_age+'</div><div class="col-md-6"> '+data.cm.created_at+'</div></div>');
+	   }
+	   if(data.cm !=null){
+		   $('.perivous-km').append('<div class="row"><div class="col-md-2"> CM :</div><div class="col-md-3"> '+data.cm.mill_age+'</div><div class="col-md-6"> '+data.cm.created_at+'</div></div>');
+	   }
+   });
+   
+});
+$('.extra-fields-customer').click(function() {
+		  $('.customer_records').clone().appendTo('.customer_records_dynamic');
+		  $('.customer_records_dynamic .customer_records').addClass('single remove');
+		  $('.single .extra-fields-customer').remove();
+		  $('.single').append('<a href="javascript:void(0);" class="btn btn-danger remove-field btn-remove-customer"><i class="fa fa-minus-circle"></i></a>');
+		  $('.customer_records_dynamic > .single').attr("class", "remove");
+
+		  $('.customer_records_dynamic input').each(function() {
+			var count = 0;
+			var fieldname = $(this).attr("name");
+			$(this).attr('name', fieldname);
+			count++;
+		  });
+
+		});
+
+		$(document).on('click', '.remove-field', function(e) {
+		  $(this).parent('.remove').remove();
+		  e.preventDefault();
+		});
     $("ul#workorder").siblings('a').attr('aria-expanded','true');
     $("ul#workorder").addClass("show");
     

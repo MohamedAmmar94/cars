@@ -13,4 +13,8 @@ class CustomerCar extends Model
     {
         return $this->belongsTo(Customer::class);
     }
+	public function backlog()
+    {
+    	return $this->hasMany('App\Backlog',"car_id","id");
+    }
 }

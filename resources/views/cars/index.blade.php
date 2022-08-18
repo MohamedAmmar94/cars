@@ -1,4 +1,18 @@
 @extends('layout.main') @section('content')
+<style>
+.backlog-body{
+	padding: 20px 60px;
+}
+.backlog-body .row{
+	margin: 10px 0;
+}
+.backlog-body .row input[type=checkbox]{
+	    margin: 7px 10px;
+}
+.submit-backlog{
+	display:none;
+}
+</style>
 @if(session()->has('create_message'))
     <div class="alert alert-success alert-dismissible text-center"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>{!! session()->get('create_message') !!}</div> 
 @endif
@@ -54,6 +68,9 @@
                                 <li> 
                                     <a href="{{ route('cars.edit', ['id' => $car->id]) }}" class="btn btn-link"><i class="dripicons-document-edit"></i> {{trans('file.edit')}}</a>
                                 </li>
+								<li> 
+                                    <a href="#" data-toggle="modal" data-target="#backlog-model" class="btn btn-link"onclick="getbacklog({{$car->id}})"><i class="fa fa-eye"></i> Backlog</a>
+                                </li>
                                 @endif
 
                                 <li class="divider"></li>
@@ -73,9 +90,166 @@
         </table>
     </div>
 </section>
-
-
+<div class="modal fade" id="backlog-model" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content" style="   background-color: #fff7f7;">
+	
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">select fixed BackLog </h5>
+		
+			
+        
+		<button type="button" class="close" data-dismiss="modal" aria-label="Close" style="padding:0;margin:0;">
+				<span aria-hidden="true">&times;</span>
+			</button>
+		
+      </div>
+	  <div class="modal-msg"></div>
+      <div class="modal-body " >
+        <div class="backlog-title" style="display:block;width:100%">
+			
+		</div>
+		<div class="backlog-body"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" >Close</button>
+        
+      </div>
+	  
+    </div>
+  </div>
+</div>
+<div class="modal backlog-modal fade "  id="backlog-edit-model" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content" >
+	
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">BackLog </h5>
+		
+			
+        
+		<button type="button" class="close" data-dismiss="modal" aria-label="Close" style="padding:0;margin:0;">
+				<span aria-hidden="true">&times;</span>
+			</button>
+		
+      </div>
+	  <form id="backlog-form">
+      <div class="modal-body backlog-edit-body" >
+        
+      </div>
+      <div class="modal-footer">
+       <button type="submit" class="btn btn-primary submit-backlog"    >Save</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" >Close</button>
+        
+      </div>
+	  </form>
+	  
+    </div>
+  </div>
+</div>
 <script type="text/javascript">
+
+$(function(){
+			setTimeout(function() {
+				  $(".alert").fadeOut().empty();
+				}, 5000);
+    $("#backlog-form").on("submit", function(e){
+		 e.preventDefault();
+		var carid=$('#backlog-carid').val();
+		//console.log(data);
+		$('.backlog-modal').modal('hide');
+         $.ajax({
+          url: '/workorder/setbacklog/form',
+          type: 'get',
+          data: $('#backlog-form').serialize(),
+          
+         }).done(function(data){
+			 console.log(data);
+			 if(data=="operation field"){
+				 $('.modal-msg').
+						append('<div class="alert alert-danger" role="alert">'+data+'</div>');
+			 }else{
+				 $('.modal-msg').
+						append('<div class="alert alert-success" role="alert">'+data+'</div>');
+						
+			 }
+			 getbacklog(carid);
+			 $('.backlog-modal').modal('hide');
+			 setTimeout(function() {
+				  $(".alert").fadeOut().empty();
+				}, 5000);
+		 }); 
+        
+    });
+});
+function setbacklog(id , carid){
+	
+	$.ajax({
+			url: 'workorder/setbacklog/'+id+'/'+carid,
+			type: "GET",
+			datatype: 'html',
+			
+		}).done(
+			function(data){
+				$('.submit-backlog').show();
+				$('.backlog-edit-body').html(data.html);
+			});
+}
+function delbacklog(id){
+	$.ajax({
+			url: 'workorder/delbacklog/'+id,
+			type: "GET",
+			datatype: 'html',
+			
+		}).done(
+			function(data){
+				
+				if(data.msg=="success"){
+					$('.modal-msg').
+						 append('<div class="alert alert-success" role="alert">'+data.msg+'</div>');
+					getbacklog(data.car_id);
+				}else{
+					 $('.modal-msg').
+						append('<div class="alert alert-danger" role="alert">'+data.msg+'</div>');
+				}
+				
+				
+			});
+}
+function getbacklog(id){
+	
+	
+	$.ajax({
+			url: 'workorder/getallbacklog/'+id,
+			type: "GET",
+			datatype: 'html',
+			
+		}).done( 
+
+			function(data) 
+
+			{
+				
+				$('.backlog-title').html('<button type="button" class="btn btn-primary" onclick="setbacklog(\'new\', '+data.car_id+')" style="float:right" data-toggle	="modal" data-target="#backlog-edit-model"><i class="fa fa-plus-circle"></i></button>');
+				
+				$('.backlog-body').html("");
+				 if(data.backlogs.length >0){
+					$.each(data.backlogs, function(index) {
+						
+						var component='<div class="badge badge-warning"> pendding </div>';
+						if(data.backlogs[index].status==1){
+							checked="completed";
+							component='<div class="badge badge-success"> completed </div>';
+						}
+						$('.backlog-body').
+						append('<div class="row"><div class="col-md-4"><p>'+data.backlogs[index].title+'</p></div><div class="col-md-2">'+component+'</div><div class="col-md-3"><p>'+data.backlogs[index].created_at+'</p></div><div class="col-md-3"><button type="button" class="btn btn-info" data-toggle="modal" data-target="#backlog-edit-model" onclick="setbacklog('+data.backlogs[index].id+','+data.backlogs[index].car_id+')"><i class="dripicons-document-edit" ></i></button><button style="margin:0 10px" type="button" class="btn btn-danger" onclick="delbacklog('+data.backlogs[index].id+')"><i class="fa fa-minus-circle"></i></button></div></div>');
+					});
+				}else{
+					$('.backlog-body').html("<h6>No Backlog For this Car</h6>");
+				} 
+				
+			});
+}
     $("ul#people").siblings('a').attr('aria-expanded','true');
     $("ul#people").addClass("show");
     $("ul#people #cars-list-menu").addClass("active");

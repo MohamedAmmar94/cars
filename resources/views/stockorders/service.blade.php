@@ -8,7 +8,7 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header d-flex align-items-center">
-                        <h4>{{trans('file.add_products')}} sssssssssss</h4>
+                        <h4>{{trans('file.add_products')}} </h4>
                     </div>
                     <div class="card-body">
                         <p class="italic"><small>{{trans('file.The field labels marked with * are required input fields')}}.</small></p>
@@ -106,11 +106,16 @@
                                                     $temp_unit_name = [];
                                                     $temp_unit_operator = [];
                                                     $temp_unit_operation_value = [];
+													$current_tot		=0;
+													$current_quantity	=0;
                                                     ?>
                                                     @foreach($lims_product_quotation_data as $product_quotation)
 													@if(isset($product_quotation->product))
                                                     <tr>
                                                     <?php 
+													$current_tot=$current_tot + $product_quotation->total;
+													$product_price=$product_quotation->product->price ;
+													$current_quantity= $current_quantity + $product_quotation->qty;
                                                         $product_data = DB::table('products')->find($product_quotation->product_id);
                                                         if($product_quotation->variant_id) {
                                                             $product_variant_data = \App\ProductVariant::select('id', 'item_code')->FindExactProduct($product_data->id, $product_quotation->variant_id)->first();
@@ -180,7 +185,7 @@
                                                         <input type="hidden" class="product-id" name="product_id[]" value="{{$product_data->id}}"/>
                                                         <input type="hidden" name="product_variant_id[]" value="{{$product_variant_id}}"/>
                                                         <input type="hidden" class="product-code" name="product_code[]" value="{{$product_data->code}}"/>
-                                                        <input type="hidden" class="product-price" name="product_price[]" value="{{$product_price ??""}}"/>
+                                                        <input type="hidden" class="product-price" name="product_price[]" value="{{$product_price ?? 0}}"/>
                                                         <input type="hidden" class="sale-unit" name="sale_unit[]" value="{{$unit_name}}"/>
                                                         <input type="hidden" class="sale-unit-operator" value="{{$unit_operator}}"/>
                                                         <input type="hidden" class="sale-unit-operation-value" value="{{$unit_operation_value}}"/>
@@ -201,11 +206,11 @@
                                                 </tbody>
                                                 <tfoot class="tfoot active">
                                                     <th colspan="2">{{trans('file.Total')}}</th>
-                                                    <th id="total-qty">{{$lims_quotation_data->total_qty}}</th>
+                                                    <th id="total-qty">{{$current_quantity}}</th>
                                                     <th></th>
                                                     <th id="total-discount">{{ number_format((float)$lims_quotation_data->total_discount, 2, '.', '') }}</th>
                                                     <th id="total-tax">{{ number_format((float)$lims_quotation_data->total_tax, 2, '.', '')}}</th>
-                                                    <th id="total">{{ number_format((float)$lims_quotation_data->total_price, 2, '.', '') }}</th>
+                                                    <th id="total">{{ number_format((float)$current_tot, 2, '.', '') }}</th>
                                                     <th><i class="dripicons-trash"></i></th>
                                                 </tfoot>
                                             </table>
@@ -299,6 +304,7 @@
                                         </div>
                                     </div>
                                 </div>
+								
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div class="form-group">
@@ -408,7 +414,7 @@ var pos;
 var rownumber = $('table.order-list tbody tr:last').index();
 
 for(rowindex  =0; rowindex <= rownumber; rowindex++){
-
+	//console.log($('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('.product-price').val());
     product_price.push(parseFloat($('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('.product-price').val()));
     exist_code.push($('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('td:nth-child(2)').text());
     var total_discount = parseFloat($('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('td:nth-child(5)').text());
@@ -424,7 +430,7 @@ for(rowindex  =0; rowindex <= rownumber; rowindex++){
     unit_operation_value.push($('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('.sale-unit-operation-value').val());
     $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('.sale-unit').val(temp_unit_name[0]);
 }
-
+//console.log("dd "+product_price);
 $('.selectpicker').selectpicker({
     style: 'btn-link',
 });
@@ -744,6 +750,7 @@ function edit(){
 
 function checkQuantity(sale_qty, flag) {
     var row_product_code = $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('td:nth-child(2)').text();
+	
     pos = product_code.indexOf(row_product_code);
 
     if(product_type[pos] == 'standard'){
@@ -793,11 +800,12 @@ function checkQuantity(sale_qty, flag) {
 }
 
 function calculateRowProductData(quantity) {
+	console.log(product_price);
     if(product_type[pos] == 'standard')
         unitConversion();
     else
         row_product_price = product_price[rowindex];
-
+	console.log(product_price[0]+" | "+rowindex+" | "+row_product_price);
     $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('td:nth-child(5)').text((product_discount[rowindex] * quantity).toFixed(2));
     $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('.discount-value').val((product_discount[rowindex] * quantity).toFixed(2));
     $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('.tax-rate').val(tax_rate[rowindex].toFixed(2));

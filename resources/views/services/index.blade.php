@@ -28,6 +28,7 @@
                 <tr>
                     <th class="not-exported"></th>
                     <th>{{trans('file.name')}}</th>
+                    <th>{{trans('file.tst')}}</th>
                     <th>{{trans('file.Code')}}</th>
                     <th>{{trans('file.Price')}}</th>
                     <th class="not-exported">{{trans('file.action')}}</th>
@@ -312,6 +313,7 @@
             "columns": [
                 {"data": "key"},
                 {"data": "name"},
+                {"data": "tst"},
                 {"data": "code"},
                 {"data": "price"},
                 {"data": "options"},

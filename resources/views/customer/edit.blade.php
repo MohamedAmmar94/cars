@@ -60,6 +60,15 @@
                                     <input type="text" name="tax_no" class="form-control" value="{{$lims_customer_data->tax_no}}">
                                 </div>
                             </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>{{trans('file.due_period')}}</label>
+                                    <input type="number" step="1" value="{{$lims_customer_data->due_period}}" name="due_period" class="form-control">
+                                    <small>in Days</small>
+                                </div>
+                            </div>
+
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>{{trans('file.Address')}} *</label>

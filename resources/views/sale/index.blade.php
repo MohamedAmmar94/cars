@@ -23,7 +23,7 @@
                     <th>{{trans('file.Biller')}}</th>
                     <th>{{trans('file.customer')}}</th>
                     <th>{{trans('file.customercar')}}</th>
-                    <th>{{trans('file.Sale Status')}}</th>
+                    <th>{{trans('file.workorder_status')}}</th>
                     <th>{{trans('file.Payment Status')}}</th>
                     <th>{{trans('file.grand total')}}</th>
                     <th>{{trans('file.Paid')}}</th>
@@ -35,6 +35,7 @@
             <tfoot class="tfoot active">
                 <th></th>
                 <th>{{trans('file.Total')}}</th>
+                <th></th>
                 <th></th>
                 <th></th>
                 <th></th>
@@ -378,13 +379,16 @@
     $('#view-payment').modal('hide');
 
     $(document).on("click", "tr.sale-link td:not(:first-child, :last-child)", function() {
+
         var sale = $(this).parent().data('sale');
         saleDetails(sale);
+		//quotationDetails(sale);
     });
 
     $(document).on("click", ".view", function(){
         var sale = $(this).parent().parent().parent().parent().parent().data('sale');
         saleDetails(sale);
+		//quotationDetails(sale);
     });
 
     $("#print-btn").on("click", function(){
@@ -405,7 +409,7 @@
         rowindex = $(this).closest('tr').index();
         deposit = $('table.sale-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('.deposit').val();
         var sale_id = $(this).data('id').toString();
-        var balance = $('table.sale-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('td:nth-child(10)').text();
+        var balance = $('table.sale-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('td:nth-child(11)').text();
         balance = parseFloat(balance.replace(/,/g, ''));
         $('input[name="paying_amount"]').val(balance);
         $('#add-payment input[name="balance"]').val(balance);
@@ -811,21 +815,28 @@
         if (dt_selector.rows( '.selected' ).any() && is_calling_first) {
             var rows = dt_selector.rows( '.selected' ).indexes();
 
-            $( dt_selector.column( 7 ).footer() ).html(dt_selector.cells( rows, 7, { page: 'current' } ).data().sum().toFixed(2));
             $( dt_selector.column( 8 ).footer() ).html(dt_selector.cells( rows, 8, { page: 'current' } ).data().sum().toFixed(2));
             $( dt_selector.column( 9 ).footer() ).html(dt_selector.cells( rows, 9, { page: 'current' } ).data().sum().toFixed(2));
+            $( dt_selector.column( 10 ).footer() ).html(dt_selector.cells( rows, 10, { page: 'current' } ).data().sum().toFixed(2));
         }
         else {
-            $( dt_selector.column( 7 ).footer() ).html(dt_selector.cells( rows, 7, { page: 'current' } ).data().sum().toFixed(2));
             $( dt_selector.column( 8 ).footer() ).html(dt_selector.cells( rows, 8, { page: 'current' } ).data().sum().toFixed(2));
             $( dt_selector.column( 9 ).footer() ).html(dt_selector.cells( rows, 9, { page: 'current' } ).data().sum().toFixed(2));
+            $( dt_selector.column( 10 ).footer() ).html(dt_selector.cells( rows, 10, { page: 'current' } ).data().sum().toFixed(2));
         }
     }
 
     function saleDetails(sale){
+
+		sale = sale.replace('[','');
+		sale = sale.replace(']','');
+		sale = sale.replace(/"/g,'');
+		sale = sale.replace(/ /g,'');
+		sale = sale.split(",");
+        console.log(sale);
         $("#sale-details input[name='sale_id']").val(sale[13]);
 
-        var htmltext = '<strong>{{trans("file.Date")}}: </strong>'+sale[0]+'<br><strong>{{trans("file.reference")}}: </strong>'+sale[1]+'<br><strong>{{trans("file.Warehouse")}}: </strong>'+sale[27]+'<br><strong>{{trans("file.Sale Status")}}: </strong>'+sale[2]+'<br><br><div class="row"><div class="col-md-6"><strong>{{trans("file.From")}}:</strong><br>'+sale[3]+'<br>'+sale[4]+'<br>'+sale[5]+'<br>'+sale[6]+'<br>'+sale[7]+'<br>'+sale[8]+'</div><div class="col-md-6"><div class="float-right"><strong>{{trans("file.To")}}:</strong><br>'+sale[9]+'<br>'+sale[10]+'<br>'+sale[11]+'<br>'+sale[12]+'<br><strong>{{trans("file.customercar")}}:</strong><br>'+sale[30]+'</div></div></div>';
+        var htmltext = '<strong>{{trans("file.Date")}}: </strong>'+sale[0]+'<br><strong>{{trans("file.reference")}}: </strong>'+sale[1]+'<br><strong>{{trans("file.Warehouse")}}: </strong>'+sale[27]+'<br><strong>{{trans("file.Sale Status")}}: </strong>'+sale[2]+'<br><strong>{{trans("file.completed_at")}}: </strong>'+sale[31]+'<br><br><div class="row"><div class="col-md-6"><strong>{{trans("file.From")}}:</strong><br>'+sale[3]+'<br>'+sale[4]+'<br>'+sale[5]+'<br>'+sale[6]+'<br>'+sale[7]+'<br>'+sale[8]+'</div><div class="col-md-6"><div class="float-right"><strong>{{trans("file.To")}}:</strong><br>'+sale[9]+'<br>'+sale[10]+'<br>'+sale[11]+'<br>'+sale[12]+'<br><strong>{{trans("file.customercar")}}:</strong><br>'+sale[30]+'</div></div></div>';
         $.get('sales/product_sale/' + sale[13], function(data){
             $(".product-sale-list tbody").remove();
             var name_code = data[0];
@@ -866,6 +877,13 @@
             newRow.append(cols);
             newBody.append(newRow);
 
+			var newRow = $("<tr>");
+            cols = '';
+            cols += '<td colspan=6><strong>{{trans("file.Order consumables")}}:</strong></td>';
+            cols += '<td>' + sale[32] + '</td>';
+            newRow.append(cols);
+            newBody.append(newRow);
+				
             var newRow = $("<tr>");
             cols = '';
             cols += '<td colspan=6><strong>{{trans("file.Order Discount")}}:</strong></td>';
@@ -916,6 +934,7 @@
         $('#sale-footer').html(htmlfooter);
         $('#sale-details').modal('show');
     }
+	
 
     $(document).on('submit', '.payment-form', function(e) {
         if( $('input[name="paying_amount"]').val() < parseFloat($('#amount').val()) ) {

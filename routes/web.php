@@ -43,6 +43,10 @@ Route::group(['middleware' => ['auth', 'active']], function() {
 	Route::get('brand/lims_brand_search', 'BrandController@limsBrandSearch')->name('brand.search');
 	Route::resource('brand', 'BrandController');
 
+	Route::post('importproductsystem', 'ProductSystemController@importProductSystem')->name('product-system.import');
+	Route::post('product-system/deletebyselection', 'ProductSystemController@deleteBySelection');
+	Route::resource('product-system', 'ProductSystemController');
+
 	Route::post('importsupplier', 'SupplierController@importSupplier')->name('supplier.import');
 	Route::post('supplier/deletebyselection', 'SupplierController@deleteBySelection');
 	Route::get('supplier/lims_supplier_search', 'SupplierController@limsSupplierSearch')->name('supplier.search');
@@ -61,6 +65,8 @@ Route::group(['middleware' => ['auth', 'active']], function() {
 	//Route::get('products/getbarcode', 'ProductController@getBarcode');
 	Route::post('products/product-data', 'ProductController@productData');
 	Route::get('products/gencode', 'ProductController@generateCode');
+	Route::get('products/custom/code', 'ProductController@customCode')->name('products.custom.code');
+	Route::get('products/custom/search', 'ProductController@customSearch')->name('products.custom.search');
 	Route::get('products/search', 'ProductController@search');
 	Route::get('products/saleunit/{id}', 'ProductController@saleUnit');
 	Route::get('products/getdata/{id}', 'ProductController@getData');
@@ -164,7 +170,7 @@ Route::group(['middleware' => ['auth', 'active']], function() {
     Route::get('stockorders/service/lims_product_search', 'StockorderController@limsProductSearch');
     
     Route::post('stockorders/deletebyselection', 'StockorderController@deleteBySelection');
-    Route::put('stockorders/service/update/{id}', 'StockorderController@update_service')->name('stockorders.service.update');
+    Route::put('stockorders/service/update/{id}', 'StockorderController@update')->name('stockorders.service.update');
     Route::get('stockorders/completeorder/{id}', 'StockorderController@completeorder');
 	
 	Route::get('stockorders/service/edit/{id}', 'StockorderController@service_edit')->name('stockorders.service.edit');
@@ -173,20 +179,32 @@ Route::group(['middleware' => ['auth', 'active']], function() {
 	
     Route::resource('stockorders', 'StockorderController');
 
+    Route::get('invoices','WorkorderController@invoiceIndex')->name('invoice.index');
+
     Route::get('workorder/product_quotation/{id}','WorkorderController@productQuotationData');
     Route::get('workorder/lims_product_search', 'WorkorderController@limsProductSearch')->name('workorder.search');
     Route::get('workorder/getcustomergroup/{id}', 'WorkorderController@getCustomerGroup')->name('workorder.getcustomergroup');
     Route::get('workorder/getcustomercars/{id}', 'WorkorderController@getCustomerCars')->name('workorder.getcustomercars');
     Route::get('workorder/getproduct/{id}', 'WorkorderController@getProduct')->name('workorder.getproduct');
     Route::get('workorder/{id}/create_sale', 'WorkorderController@createSale')->name('workorder.create_sale');
+    Route::get('/workorder/getbacklog/{id}', 'WorkorderController@getbacklog')->name('workorder.getbacklog');
+    Route::get('/workorder/getallbacklog/{id}', 'WorkorderController@getallbacklog');
+    Route::get('/workorder/setbacklog/{id}/{carid}', 'WorkorderController@setbacklog');
+    Route::get('/workorder/setbacklog/form', 'WorkorderController@backlog_form');
+    Route::get('/workorder/delbacklog/{id}', 'WorkorderController@delbacklog');
     Route::get('workorder/{id}/create_purchase', 'WorkorderController@createPurchase')->name('workorder.create_purchase');
     Route::post('workorder/sendmail', 'WorkorderController@sendMail')->name('workorder.sendmail');
     Route::post('workorder/deletebyselection', 'WorkorderController@deleteBySelection');
+
+    Route::post('workorder/deliver-invoice', 'WorkorderController@deliverInvoice')->name('workorder.deliver-invoice');
+
 	
 	Route::get('workorder/cancel/{id}', 'WorkorderController@workorder_cancel')->name('workorder.cancel');
     Route::get('workorder/closed/{id}', 'WorkorderController@workorder_closed')->name('workorder.closed');
     Route::get('workorder/complete/{id}', 'WorkorderController@workorder_completed')->name('workorder.complete');
+    Route::get('workorder/getrow/{id}', 'WorkorderController@getrow')->name('workorder.getrow');
 	
+
     Route::resource('workorder', 'WorkorderController');
 
 

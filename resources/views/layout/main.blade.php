@@ -176,6 +176,7 @@
                         <ul id="sale" class="collapse list-unstyled ">
                             @if($index_permission_active)
                                 <li id="sale-list-menu"><a href="{{route('sales.index')}}">{{trans('file.Sale List')}}</a></li>
+                                <li id="invoices-list-menu"><a href="{{route('invoice.index')}}">{{trans('file.invoices')}}</a></li>
                                 <?php
                                 $add_permission = DB::table('permissions')->where('name', 'sales-add')->first();
                                 $add_permission_active = DB::table('role_has_permissions')->where([
@@ -228,7 +229,7 @@
               
               <li><a href="#product" aria-expanded="false" data-toggle="collapse"> <i class="dripicons-list"></i><span>{{__('file.product')}}</span></a>
                 <ul id="product" class="collapse list-unstyled ">
-                  <li id="category-menu"><a href="{{route('category.index')}}">{{__('file.categories')}}</a></li>
+                  <li id="category-menu"><a href="{{route('category.index')}}">{{__('file.Vehicles')}}</a></li>
                   @if($index_permission_active)
                   <li id="product-list-menu"><a href="{{route('products.index')}}">{{__('file.product_list')}}</a></li>
                   <?php 
@@ -824,6 +825,11 @@
                                   ['permission_id', $brand_permission->id],
                                   ['role_id', $role->id]
                               ])->first();
+//                      $product_system_permission = DB::table('permissions')->where('name', 'product_system')->first();
+//                      $product_system_permission_active = DB::table('role_has_permissions')->where([
+//                                  ['permission_id', $product_system_permission->id],
+//                                  ['role_id', $role->id]
+//                              ])->first();
 
                       $unit_permission = DB::table('permissions')->where('name', 'unit')->first();
                       $unit_permission_active = DB::table('role_has_permissions')->where([
@@ -884,7 +890,10 @@
                   @endif
                   @if($brand_permission_active)
                   <li id="brand-menu"><a href="{{route('brand.index')}}">{{trans('file.Brand')}}</a></li>
-                  @endif
+                      @endif
+{{--                  @if($product_system_permission_active)--}}
+                  <li id="product-system-menu"><a href="{{route('product-system.index')}}">{{trans('file.product-system')}}</a></li>
+{{--                  @endif--}}
                   @if($unit_permission_active)
                   <li id="unit-menu"><a href="{{route('unit.index')}}">{{trans('file.Unit')}}</a></li>
                   @endif

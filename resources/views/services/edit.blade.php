@@ -7,7 +7,7 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header d-flex align-items-center">
-                        <h4>{{trans('file.Update Service Product')}}</h4>
+                        <h4>{{trans('file.Update Service')}}</h4>
                     </div>
                     <div class="card-body">
                         <p class="italic"><small>{{trans('file.The field labels marked with * are required input fields')}}.</small></p>
@@ -31,6 +31,13 @@
                                     <div class="form-group">
                                         <label>{{trans('file.service_name')}} * </label>
                                         <input type="text" name="name" value="{{$lims_product_data->name}}" required class="form-control">
+                                        <span class="validation-msg" id="name-error"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>{{trans('file.tst')}} * </label>
+                                        <input type="time" name="tst" value="{{$lims_product_data->tst}}" required class="form-control">
                                         <span class="validation-msg" id="name-error"></span>
                                     </div>
                                 </div>
@@ -178,7 +185,7 @@
                                 </div>
                                 <div class="col-md-4" >
                                     <div class="form-group">
-                                        <label>{{trans('file.Product Price')}} *</label>
+                                        <label>{{trans('file.Service Price')}} *</label>
                                         <input type="number" name="price" value="{{$lims_product_data->price}}" required class="form-control" step="any">
                                         <span class="validation-msg"></span>
                                     </div>
@@ -233,7 +240,7 @@
                                 </div> 
                                 <div class="col-md-12"> 
                                     <div class="form-group">
-                                        <label>{{trans('file.Product Services Details')}}</label>
+                                        <label>{{trans('file.Services Details')}}</label>
                                         <textarea name="product_details" class="form-control" rows="5">{{str_replace('@', '"', $lims_product_data->product_details)}}</textarea>
                                     </div>
                                 </div>

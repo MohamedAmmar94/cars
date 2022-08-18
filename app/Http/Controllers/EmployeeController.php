@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\EmployeeDocument;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use App\Warehouse;
@@ -49,7 +50,7 @@ class EmployeeController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->except('image');
+        $data = $request->except('image','documents');
         $message = 'Employee created successfully';
         if(isset($data['user'])){
             $this->validate($request, [
@@ -99,7 +100,23 @@ class EmployeeController extends Controller
 
         $data['name'] = $data['employee_name'];
         $data['is_active'] = true;
-        Employee::create($data);
+        $employee=Employee::create($data);
+
+        $documents = $request->documents;
+        if ($documents) {
+            foreach ($documents as $document){
+
+                $name=$document->getClientOriginalName();
+                $filename_images = date("dmY-his") . $name;
+                $document->move('public/employee/files', $filename_images);
+
+                $doc=new EmployeeDocument();
+                $doc->path=$filename_images;
+                $doc->employee_id=$employee->id;
+                $doc->save();
+            }
+
+        }
 
         return redirect('employees')->with('message', $message);
     }
@@ -146,6 +163,22 @@ class EmployeeController extends Controller
             $data['image'] = $imageName;
         }
 
+        $documents = $request->documents;
+        if ($documents) {
+            EmployeeDocument::where('employee_id',$lims_employee_data->id)->delete();
+            foreach ($documents as $document){
+
+                $name=$document->getClientOriginalName();
+                $filename_images = date("dmY-his") . $name;
+                $document->move('public/employee/files', $filename_images);
+
+                $doc=new EmployeeDocument();
+                $doc->path=$filename_images;
+                $doc->employee_id=$lims_employee_data->id;
+                $doc->save();
+            }
+
+        }
         $lims_employee_data->update($data);
         return redirect('employees')->with('message', 'Employee updated successfully');
     }

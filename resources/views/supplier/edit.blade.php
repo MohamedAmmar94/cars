@@ -22,6 +22,12 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
+                                    <label>{{trans('file.code')}} *</label>
+                                    <input type="text" name="code" value="{{$lims_supplier_data->code}}" required class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
                                     <label>{{trans('file.Image')}}</label>
                                     <input type="file" name="image" class="form-control">
                                     @if($errors->has('image'))

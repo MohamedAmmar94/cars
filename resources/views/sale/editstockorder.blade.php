@@ -71,6 +71,17 @@
 
                                         </div>
                                     </div>
+									<div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>{{trans('file.recived_person')}} *</label> |
+                                            <a target="_blank" href="/employees/create" class="btn btn-sm btn-info" ><i class="fa fa-plus-circle"></i></a>
+                                            <select id="received_person" name="received_person" required class="selectpicker form-control" data-live-search="true" id="received_person" data-live-search-style="begins" title="{{ trans('file.choose')." ".trans('file.customer')}} ..">
+                                                @foreach($lims_employee_list as $employee)
+                                                    <option value="{{$employee->id}}">{{$employee->name . ' (' . $employee->phone_number . ')'}}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
 
                                 </div>
                                 <div class="row mt-3" hidden>
@@ -93,6 +104,7 @@
                                                         <th>{{trans('file.Code')}}</th>
                                                         <th>{{trans('file.Quantity')}}</th>
                                                         <th>{{trans('file.Net Unit Price')}}</th>
+                                                        <th>{{trans('file.remaining')}}</th>
                                                         <th>{{trans('file.Subtotal')}}</th>
 {{--                                                        <th><i class="dripicons-trash"></i></th>--}}
                                                     </tr>
@@ -102,10 +114,15 @@
                                                     $temp_unit_name = [];
                                                     $temp_unit_operator = [];
                                                     $temp_unit_operation_value = [];
+													$current_tot		=0;
+													$current_quantity	=0;
                                                     ?>
                                                     @foreach($lims_product_sale_data as $product_sale)
+													@if(!empty($product_sale->product))
                                                     <tr>
                                                     <?php 
+													$current_tot=$current_tot + $product_sale->total;
+													$current_quantity= $current_quantity + $product_sale->qty;
                                                         $product_data = DB::table('products')->find($product_sale->product_id);
                                                         if($product_sale->variant_id){
                                                             $product_variant_data = \App\ProductVariant::select('id', 'item_code')->FindExactProduct($product_data->id, $product_sale->variant_id)->first();
@@ -165,6 +182,7 @@
                                                         <td class="net_unit_price">{{ number_format((float)$product_sale->net_unit_price, 2, '.', '') }} </td>
 {{--                                                        <td class="discount">{{ number_format((float)$product_sale->discount, 2, '.', '') }}</td>--}}
 {{--                                                        <td class="tax">{{ number_format((float)$product_sale->tax, 2, '.', '') }}</td>--}}
+                                                        <td class="remaining">{{ $product_sale->product->qty-$product_sale->qty}} </td>
                                                         <td class="sub-total">{{ number_format((float)$product_sale->total, 2, '.', '') }}</td>
 {{--                                                        <td><button type="button" class="ibtnDel btn btn-md btn-danger">{{trans("file.delete")}}</button></td>--}}
                                                         <input type="hidden" class="product-code" name="product_code[]" value="{{$product_data->code}}"/>
@@ -186,15 +204,16 @@
                                                         <input type="hidden" class="tax-value" name="tax[]" value="{{$product_sale->tax}}" />
                                                         <input type="hidden" class="subtotal-value" name="subtotal[]" value="{{$product_sale->total}}" />
                                                     </tr>
+													@endif
                                                     @endforeach
                                                 </tbody>
                                                 <tfoot class="tfoot active">
-                                                    <th colspan="2">{{trans('file.Total')}}</th>
-                                                    <th id="total-qty">{{$lims_sale_data->total_qty}}</th>
+                                                    <th colspan="3">{{trans('file.Total')}}</th>
+                                                    <th id="total-qty">{{$current_quantity}}</th>
                                                     <th></th>
 {{--                                                    <th id="total-discount">{{ number_format((float)$lims_sale_data->total_discount, 2, '.', '') }}</th>--}}
 {{--                                                    <th id="total-tax">{{ number_format((float)$lims_sale_data->total_tax, 2, '.', '')}}</th>--}}
-                                                    <th id="total">{{ number_format((float)$lims_sale_data->total_price, 2, '.', '') }}</th>
+                                                    <th id="total">{{ number_format((float)$current_tot, 2, '.', '') }}</th>
 {{--                                                    <th><i class="dripicons-trash"></i></th>--}}
                                                 </tfoot>
                                             </table>

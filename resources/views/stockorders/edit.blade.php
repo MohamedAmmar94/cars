@@ -8,11 +8,11 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header d-flex align-items-center">
-                        <h4>{{trans('file.add_products')}}</h4>
+                        <h4>{{trans('file.add_products')}} </h4>
                     </div>
                     <div class="card-body">
                         <p class="italic"><small>{{trans('file.The field labels marked with * are required input fields')}}.</small></p>
-                        {!! Form::open(['route' => ['stockorders.update', $lims_quotation_data->id], 'method' => 'put', 'files' => true, 'id' => 'payment-form']) !!}
+                        {!! Form::open(['route' => ['stockorders.service.update', $lims_quotation_data->id], 'method' => 'put', 'files' => true, 'id' => 'payment-form']) !!}
                         <input type="hidden" name="sale_id" value="{{ $lims_quotation_data->id }}">
                         <div class="row">
                             <div class="col-md-12">
@@ -98,19 +98,26 @@
                                                         <th>{{trans('file.Net Unit Price')}}</th>
                                                         <th>{{trans('file.Discount')}}</th>
                                                         <th>{{trans('file.Subtotal')}}</th>
+                                                        <th>{{trans('file.remaining')}}</th>
                                                         <th><i class="dripicons-trash"></i></th>
+
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <?php 
+                                                    <?php
                                                     $temp_unit_name = [];
                                                     $temp_unit_operator = [];
                                                     $temp_unit_operation_value = [];
+													
+													$current_tot		=0;
+													$current_quantity	=0;
                                                     ?>
                                                     @foreach($lims_product_quotation_data as $product_quotation)
 													@if(isset($product_quotation->product))
                                                     <tr>
-                                                    <?php 
+                                                    <?php
+													$current_tot=$current_tot + $product_quotation->total;
+													$current_quantity= $current_quantity + $product_quotation->qty;
                                                         $product_data = DB::table('products')->find($product_quotation->product_id);
                                                         if($product_quotation->variant_id) {
                                                             $product_variant_data = \App\ProductVariant::select('id', 'item_code')->FindExactProduct($product_data->id, $product_quotation->variant_id)->first();
@@ -156,7 +163,7 @@
                                                             }
                                                             elseif($unit_operator[0] == '/'){
                                                                 $product_price = $product_price * $unit_operation_value[0];
-                                                            } 
+                                                            }
                                                         }
                                                         else {
                                                             $unit_name[] = 'n/a'. ',';
@@ -172,10 +179,15 @@
                                                         <td>{{$product_data->name}} <button type="button" class="edit-product btn btn-link" data-toggle="modal" data-target="#editModal"> <i class="dripicons-document-edit"></i></button> </td>
                                                         <td>{{$product_data->code}}</td>
                                                         <td><input type="number" class="form-control qty" name="qty[]" value="{{$product_quotation->qty}}" step="any" required/></td>
+
                                                         <td class="net_unit_price">{{ number_format((float)$product_quotation->net_unit_price, 2, '.', '') }} </td>
                                                         <td class="discount">{{ number_format((float)$product_quotation->discount, 2, '.', '') }}</td>
-                                                        <td class="tax">{{ number_format((float)$product_quotation->tax, 2, '.', '') }}</td>
+{{--                                                        <td class="tax">{{ number_format((float)$product_quotation->tax, 2, '.', '') }}</td>--}}
                                                         <td class="sub-total">{{ number_format((float)$product_quotation->total, 2, '.', '') }}</td>
+                                                        <td class="remaining">
+                                                            <input style="display: none" type="number" value="{{$product_quotation->product->qty}}">
+                                                            <span> {{$product_quotation->product?$product_quotation->product->qty-$product_quotation->qty:'' }}</span>
+                                                        </td>
                                                         <td><button type="button" class="ibtnDel btn btn-md btn-danger">{{trans("file.delete")}}</button></td>
                                                         <input type="hidden" class="product-id" name="product_id[]" value="{{$product_data->id}}"/>
                                                         <input type="hidden" name="product_variant_id[]" value="{{$product_variant_id}}"/>
@@ -195,18 +207,24 @@
                                                         <input type="hidden" class="tax-method" value="{{$product_data->tax_method}}"/>
                                                         <input type="hidden" class="tax-value" name="tax[]" value="{{$product_quotation->tax}}" />
                                                         <input type="hidden" class="subtotal-value" name="subtotal[]" value="{{$product_quotation->total}}" />
+
                                                     </tr>
 													@endif
                                                     @endforeach
                                                 </tbody>
+												
                                                 <tfoot class="tfoot active">
+												
+												
                                                     <th colspan="2">{{trans('file.Total')}}</th>
-                                                    <th id="total-qty">{{$lims_quotation_data->total_qty}}</th>
+                                                    <th id="total-qty">{{$current_quantity}}</th>
                                                     <th></th>
                                                     <th id="total-discount">{{ number_format((float)$lims_quotation_data->total_discount, 2, '.', '') }}</th>
-                                                    <th id="total-tax">{{ number_format((float)$lims_quotation_data->total_tax, 2, '.', '')}}</th>
-                                                    <th id="total">{{ number_format((float)$lims_quotation_data->total_price, 2, '.', '') }}</th>
+{{--                                                    <th id="total-tax">{{ number_format((float)$lims_quotation_data->total_tax, 2, '.', '')}}</th>--}}
+                                                    <th id="total">{{ number_format((float)$current_tot	, 2, '.', '') }}</th>
+                                                    <th></th>
                                                     <th><i class="dripicons-trash"></i></th>
+													
                                                 </tfoot>
                                             </table>
                                         </div>
@@ -279,7 +297,7 @@
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             <label>{{trans('file.Attach Document')}}</label>
-                                            <i class="dripicons-question" data-toggle="tooltip" title="Only jpg, jpeg, png, gif, pdf, csv, docx, xlsx and txt file is supported"></i> 
+                                            <i class="dripicons-question" data-toggle="tooltip" title="Only jpg, jpeg, png, gif, pdf, csv, docx, xlsx and txt file is supported"></i>
                                             <input type="file" name="document" class="form-control" />
                                             @if($errors->has('extension'))
                                                 <span>
@@ -299,6 +317,15 @@
                                         </div>
                                     </div>
                                 </div>
+								<div class="row">
+								
+									<div class=" col-md-6 form-group" style="width: 90%;">
+										<label>
+											<strong>{{trans('file.consumables')}}</strong>
+										</label>
+										<input type="number" name="consumables" class="form-control" value="{{$lims_quotation_data->consumables}}" step="any"  />
+									</div>
+								</div>
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div class="form-group">
@@ -372,7 +399,7 @@
 <script type="text/javascript">
     $("ul#workorder").siblings('a').attr('aria-expanded','true');
     $("ul#workorder").addClass("show");
-    
+
 // array data depend on warehouse
 var lims_product_array = [];
 var product_code = [];
@@ -468,7 +495,7 @@ $.get('../getproduct/' + id, function(data) {
     product_list = data[5];
     qty_list = data[6];
 
-    $.each(product_code, function(index) {        
+    $.each(product_code, function(index) {
         lims_product_array.push(product_code[index] + ' (' + product_name[index] + ')');
     });
 });
@@ -534,14 +561,19 @@ lims_productcodeSearch.autocomplete({
     }
 });
 
+
 //Change quantity
 $("#myTable").on('input', '.qty', function() {
     rowindex = $(this).closest('tr').index();
-	console.log($(this).val());
     if($(this).val() < 1 && $(this).val() != '') {
       $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ') .qty').val(1);
       alert("Quantity can't be less than 1");
     }
+    var current_remaining = $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ') .remaining input').val();
+    var current_qty=$(this).val();
+
+    $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ') .remaining span').text(parseInt(current_remaining-current_qty));
+
     checkQuantity($(this).val(), true);
 });
 
@@ -597,7 +629,7 @@ $('button[name="update_btn"]').on("click", function() {
             product_price[rowindex] = $('input[name="edit_unit_price"]').val() * row_unit_operation_value;
         }
 
-        
+
         var position = $('select[name="edit_unit"]').val();
         var temp_operator = temp_unit_operator[position];
         var temp_operation_value = temp_unit_operation_value[position];
@@ -650,9 +682,13 @@ function productSearch(data) {
         type: 'GET',
         url: '../lims_product_search',
         data: {
-            data: data
+            data: data,
+            car_id:$('input[name=car_id]').val()
         },
         success: function(data) {
+if(data['latest_dispatch'])
+    alert('This product dispatching in '+ data['latest_dispatch'])
+            console.log(data);
             var flag = 1;
             $(".product-code").each(function(i) {
                 if ($(this).val() == data[1]) {
@@ -666,6 +702,9 @@ function productSearch(data) {
             $("input[name='product_code_name']").val('');
             if (flag) {
                 var newRow = $("<tr>");
+                if(data['latest_dispatch']) {
+                    newRow.css('background', '#ffc107');
+                }
                 var cols = '';
                 temp_unit_name = (data[6]).split(',');
                 cols += '<td>' + data[0] + '<button type="button" class="edit-product btn btn-link" data-toggle="modal" data-target="#editModal"> <i class="dripicons-document-edit"></i></button></td>';
@@ -673,9 +712,14 @@ function productSearch(data) {
                 cols += '<td><input type="number" class="form-control qty" name="qty[]" value="1" step="any" required/></td>';
                 cols += '<td class="net_unit_price"></td>';
                 cols += '<td class="discount">0.00</td>';
-                cols += '<td class="tax"></td>';
+                // cols += '<td class="tax"></td>';
                 cols += '<td class="sub-total"></td>';
+                cols += '<td class="remaining">' +
+                    '<input style="display: none" type="number" value="'+data['qty']+'">'+
+                    '<span>'+parseInt(data['qty']-1)+'</span></td>';
                 cols += '<td><button type="button" class="ibtnDel btn btn-md btn-danger">{{trans("file.delete")}}</button></td>';
+
+
                 cols += '<input type="hidden" class="product-code" name="product_code[]" value="' + data[1] + '"/>';
                 cols += '<input type="hidden" class="product-id" name="product_id[]" value="' + data[9] + '"/>';
                 cols += '<input type="hidden" name="product_variant_id[]" value="' + data[10] + '"/>';
@@ -753,13 +797,16 @@ function checkQuantity(sale_qty, flag) {
             total_qty = sale_qty * operation_value[0];
         else if(operator[0] == '/')
             total_qty = sale_qty / operation_value[0];
-			//console.log("1"+total_qty);
+
+        var current_remaining = $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ') .remaining input').val();
+        var current_qty=$('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('.qty').val();
+        $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ') .remaining span').text(parseInt(current_remaining-current_qty));
         if (total_qty > parseFloat(product_qty[pos])) {
             alert('Quantity exceeds stock quantity!');
             if (flag) {
                 sale_qty = sale_qty.substring(0, sale_qty.length - 1);
                 $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('.qty').val(sale_qty);
-            } 
+            }
             else {
                 edit();
                 return;
@@ -771,7 +818,6 @@ function checkQuantity(sale_qty, flag) {
         child_qty = qty_list[pos].split(',');
         $(child_id).each(function(index) {
             var position = product_id.indexOf(parseInt(child_id[index]));
-			//console.log("2"+position);
             if( parseFloat(sale_qty * child_qty[index]) > product_qty[position] ) {
                 alert('Quantity exceeds stock quantity!');
                 if (flag) {
@@ -811,9 +857,9 @@ function calculateRowProductData(quantity) {
 
         $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('td:nth-child(4)').text(net_unit_price.toFixed(2));
         $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('.net_unit_price').val(net_unit_price.toFixed(2));
-        $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('td:nth-child(6)').text(tax.toFixed(2));
+        // $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('td:nth-child(6)').text(tax.toFixed(2));
         $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('.tax-value').val(tax.toFixed(2));
-        $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('td:nth-child(7)').text(sub_total.toFixed(2));
+        $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('td:nth-child(6)').text(sub_total.toFixed(2));
         $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('.subtotal-value').val(sub_total.toFixed(2));
     } else {
         var sub_total_unit = row_product_price - product_discount[rowindex];
@@ -823,9 +869,9 @@ function calculateRowProductData(quantity) {
 
         $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('td:nth-child(4)').text(net_unit_price.toFixed(2));
         $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('.net_unit_price').val(net_unit_price.toFixed(2));
-        $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('td:nth-child(6)').text(tax.toFixed(2));
+        // $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('td:nth-child(6)').text(tax.toFixed(2));
         $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('.tax-value').val(tax.toFixed(2));
-        $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('td:nth-child(7)').text(sub_total.toFixed(2));
+        $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('td:nth-child(6)').text(sub_total.toFixed(2));
         $('table.order-list tbody tr:nth-child(' + (rowindex + 1) + ')').find('.subtotal-value').val(sub_total.toFixed(2));
     }
     calculateTotal();

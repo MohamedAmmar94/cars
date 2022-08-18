@@ -43,11 +43,12 @@ class ServicesController extends Controller
     {
         $columns = array( 
             2 => 'name', 
-            3 => 'code',
-            4 => 'brand_id',
-            5 => 'qty',
-            6 => 'unit_id',
-            7 => 'price'
+            3 => 'tst',
+            4 => 'code',
+            5 => 'brand_id',
+            6 => 'qty',
+            7 => 'unit_id',
+            8 => 'price'
         );
         
         $totalData = Product::where('is_active', true)->where('type', 'digital')->count();
@@ -125,6 +126,7 @@ class ServicesController extends Controller
                 $product_image = htmlspecialchars($product_image[0]);
                 $nestedData['image'] = '<img src="'.url('public/images/product', $product_image).'" height="80" width="80">';
                 $nestedData['name'] = $product->name;
+                $nestedData['tst'] = $product->tst;
                 $nestedData['code'] = $product->code;
                 if($product->brand_id)
                     $nestedData['brand'] = $product->brand->title;

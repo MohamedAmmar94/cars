@@ -23,13 +23,13 @@
                                             <p><strong><?php echo e($lims_sale_data->reference_no); ?></strong></p>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-6" hidden>
                                         <div class="form-group">
                                             <label><?php echo e(trans('file.Biller')); ?> *</label>
-                                            <input type="text" readonly class="form-control" value="<?php echo e($lims_sale_data->biller->name); ?>">
+                                            <input type="text" readonly class="form-control" value="<?php echo e($lims_sale_data->biller->name ??""); ?>">
                                             <div hidden>
-                                                <input type="hidden" name="biller_id_hidden" value="<?php echo e($lims_sale_data->biller_id); ?>" />
-                                                <select required name="biller_id" class="selectpicker form-control" data-live-search="true" data-live-search-style="begins" title="Select Biller...">
+                                                <input type="hidden" name="biller_id_hidden" value="<?php echo e($lims_sale_data->biller_id ??""); ?>" />
+                                                <select  name="biller_id" class="selectpicker form-control" data-live-search="true" data-live-search-style="begins" title="Select Biller...">
                                                     <?php $__currentLoopData = $lims_biller_list; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $biller): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                         <option value="<?php echo e($biller->id); ?>"><?php echo e($biller->name . ' (' . $biller->company_name . ')'); ?></option>
                                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -94,6 +94,7 @@
                                                         <th><?php echo e(trans('file.Code')); ?></th>
                                                         <th><?php echo e(trans('file.Quantity')); ?></th>
                                                         <th><?php echo e(trans('file.Net Unit Price')); ?></th>
+                                                        <th><?php echo e(trans('file.remaining')); ?></th>
                                                         <th><?php echo e(trans('file.Subtotal')); ?></th>
 
                                                     </tr>
@@ -105,6 +106,7 @@
                                                     $temp_unit_operation_value = [];
                                                     ?>
                                                     <?php $__currentLoopData = $lims_product_sale_data; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product_sale): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+													<?php if(!empty($product_sale->product)): ?>
                                                     <tr>
                                                     <?php 
                                                         $product_data = DB::table('products')->find($product_sale->product_id);
@@ -166,12 +168,13 @@
                                                         <td class="net_unit_price"><?php echo e(number_format((float)$product_sale->net_unit_price, 2, '.', '')); ?> </td>
 
 
+                                                        <td class="remaining"><?php echo e($product_sale->product->qty-$product_sale->qty); ?> </td>
                                                         <td class="sub-total"><?php echo e(number_format((float)$product_sale->total, 2, '.', '')); ?></td>
 
                                                         <input type="hidden" class="product-code" name="product_code[]" value="<?php echo e($product_data->code); ?>"/>
                                                         <input type="hidden" name="product_id[]" value="<?php echo e($product_data->id); ?>"/>
                                                         <input type="hidden" name="product_variant_id[]" value="<?php echo e($product_variant_id); ?>"/>
-                                                        <input type="hidden" class="product-price" name="product_price[]" value="<?php echo e($product_price); ?>"/>
+                                                        <input type="hidden" class="product-price" name="product_price[]" value="<?php echo e($product_price ??""); ?>"/>
                                                         <input type="hidden" class="sale-unit" name="sale_unit[]" value="<?php echo e($unit_name); ?>"/>
                                                         <input type="hidden" class="sale-unit-operator" value="<?php echo e($unit_operator); ?>"/>
                                                         <input type="hidden" class="sale-unit-operation-value" value="<?php echo e($unit_operation_value); ?>"/>
@@ -187,10 +190,11 @@
                                                         <input type="hidden" class="tax-value" name="tax[]" value="<?php echo e($product_sale->tax); ?>" />
                                                         <input type="hidden" class="subtotal-value" name="subtotal[]" value="<?php echo e($product_sale->total); ?>" />
                                                     </tr>
+													<?php endif; ?>
                                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                 </tbody>
                                                 <tfoot class="tfoot active">
-                                                    <th colspan="2"><?php echo e(trans('file.Total')); ?></th>
+                                                    <th colspan="3"><?php echo e(trans('file.Total')); ?></th>
                                                     <th id="total-qty"><?php echo e($lims_sale_data->total_qty); ?></th>
                                                     <th></th>
 

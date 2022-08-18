@@ -1,4 +1,15 @@
 @extends('layout.main') @section('content')
+<style>
+.backlog-body{
+	padding: 20px 60px;
+}
+.backlog-body .row{
+	margin: 10px 0;
+}
+.backlog-body .row input[type=checkbox]{
+	    margin: 7px 10px;
+}
+</style>
 @if(session()->has('message'))
   <div class="alert alert-success alert-dismissible text-center"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>{!! session()->get('message') !!}</div> 
 @endif
@@ -31,6 +42,8 @@
                     <th>{{trans('file.customercar')}}</th>
                     <th>{{trans('file.dispatch_status')}}</th>
                     <th>{{trans('file.workorder_status')}}</th>
+                    <th>{{trans('file.deliver_invoice')}}</th>
+                    <th>{{trans('file.invoice_deliver_date')}}</th>
                     <th class="not-exported">{{trans('file.action')}}</th>
                 </tr>
             </thead>
@@ -54,9 +67,11 @@
                             $workorder_status = trans('file.closed');
 						if($quotation->workorder_status == 4)
                             $workorder_status = trans('file.cancel');
+						if($quotation->workorder_status == 5)
+                            $workorder_status = trans('file.Completed');
 
                     ?>
-                <tr class="quotation-link" data-quotation='["{{date($general_setting->date_format, strtotime($quotation->created_at->toDateString()))}}", "{{$quotation->reference_no}}", "{{$status}}", "{{$quotation->biller->name ?? ""}}", "{{$quotation->biller->company_name ?? ""}}","{{$quotation->biller->email ??""}}", "{{$quotation->biller->phone_number ??""}}", "{{$quotation->biller->address ??""}}", "{{$quotation->biller->city ??""}}", "{{$quotation->customer->name}}", "{{$quotation->customer->phone_number}}", "{{$quotation->customer->address}}", "{{$quotation->customer->city}}", "{{$quotation->id}}", "{{$quotation->total_tax}}", "{{$quotation->total_discount}}", "{{$quotation->total_price}}", "{{$quotation->order_tax}}", "{{$quotation->order_tax_rate}}", "{{$quotation->order_discount}}", "{{$quotation->shipping_cost}}", "{{$quotation->grand_total}}", "{{$quotation->note}}", "{{$quotation->user->name}}", "{{$quotation->user->email}}", "{{$quotation->completed_at}}"]'>
+                <tr class="quotation-link" data-quotation='["{{date($general_setting->date_format, strtotime($quotation->created_at->toDateString()))}}", "{{$quotation->reference_no}}", "{{$status}}", "{{$quotation->biller->name ?? ""}}", "{{$quotation->biller->company_name ?? ""}}","{{$quotation->biller->email ??""}}", "{{$quotation->biller->phone_number ??""}}", "{{$quotation->biller->address ??""}}", "{{$quotation->biller->city ??""}}", "{{$quotation->customer->name}}", "{{$quotation->customer->phone_number}}", "{{$quotation->customer->address}}", "{{$quotation->customer->city}}", "{{$quotation->id}}", "{{$quotation->total_tax}}", "{{$quotation->total_discount}}", "{{$quotation->total_price}}", "{{$quotation->order_tax}}", "{{$quotation->order_tax_rate}}", "{{$quotation->order_discount}}", "{{$quotation->shipping_cost}}", "{{$quotation->grand_total}}", "{{$quotation->note}}", "{{$quotation->user->name}}", "{{$quotation->user->email}}", "{{$quotation->completed_at}}", "{{$quotation->type}}"]'>
                     <td>{{$key}}</td>
                     <td>{{ date($general_setting->date_format, strtotime($quotation->created_at->toDateString())) . ' '. $quotation->created_at->toTimeString() }}</td>
                     <td>{{ $quotation->reference_no }}</td>
@@ -72,6 +87,10 @@
                     @if($quotation->sale_status == 2)
                         <td><div class="badge badge-warning">{{$status}}</div></td>
                     @endif
+
+
+
+
 					@if($quotation->workorder_status == 1)
 						<td><div class="badge badge-primary">{{ $workorder_status }}</div></td>
 					@endif
@@ -84,12 +103,18 @@
 					@if($quotation->workorder_status == 4)
 						<td><div class="badge badge-danger">{{ $workorder_status }}</div></td>
 					@endif
-					
+					@if($quotation->workorder_status == 5)
+						<td><div class="badge badge-success">{{ $workorder_status }}</div></td>
+					@endif
+
+                    <td>{{ $quotation->is_invoice_deliver? 'yes':'no' }}</td>
+                    <td>{{ $quotation->invoice_deliver_date }}</td>
+
 
                     <td>
                         <a class="btn btn-success" href="{{ route('stockorders.edit', ['id' => $quotation->id]) }}"><i class="fa fa-plus"></i> {{trans('file.Request part')}}</a>
-                        <a class="btn btn-success" href="{{ route('stockorders.service.edit', ['id' => $quotation->id]) }}"><i class="fa fa-plus"></i> {{trans('file.add_service')}}</a>
-                        <a class="btn btn-success" href="{{ route('workorder.complete', ['id' => $quotation->id]) }}"> {{trans('file.complete')}}</a>
+                        <a class="btn btn-success" href="{{ route('stockorders.service.edit', ['id' => $quotation->id]) }}"><i class="fa fa-plus"></i> {{trans('file.add_task')}}</a>
+                        <button type="button" class="btn btn-success" data-id="{{$quotation->id}}" data-toggle="modal" data-target="#complete-model" onclick="getbacklog({{$quotation->CustomerCar->id}},{{$quotation->id}})"> {{trans('file.complete')}}</button>
 
                         <div class="btn-group">
                             <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{trans('file.action')}}
@@ -97,6 +122,14 @@
                                 <span class="sr-only">Toggle Dropdown</span>
                             </button>
                             <ul class="dropdown-menu edit-options dropdown-menu-right dropdown-default" user="menu">
+                                <li>
+                                    <button type="button"
+                                            data-toggle="modal" data-target=".deliver_invoice_modal"
+                                            data-id="{{$quotation->id}}"
+                                            data-is_invoice_deliver="{{$quotation->is_invoice_deliver}}"
+                                            data-invoice_deliver_date="{{$quotation->invoice_deliver_date}}"
+                                            class="btn btn-link deliver_invoice"><i class="fa fa-eye"></i>  {{trans('file.deliver_invoice')}}</button>
+                                </li>
                                 <li>
                                     <button type="button" class="btn btn-link view"><i class="fa fa-eye"></i>  {{trans('file.View')}}</button>
                                 </li>
@@ -120,7 +153,7 @@
                                 </li>
                                 @endif
 								 @if(in_array("workorder-edit", $all_permission))
-                                <li>
+                                <li hidden>
                                     <a class="btn btn-link" href="{{ route('workorder.closed', ['id' => $quotation->id]) }}"> {{trans('file.closed')}}</a>
                                 </li>
                                 @endif
@@ -134,7 +167,28 @@
         </table>
     </div>
 </section>
-
+<!-- Modal -->
+<div class="modal fade" id="complete-model" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+	<form id="backlog-form" action="/workorder/complete/" method="get">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">select fixed BackLog </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body backlog-body" >
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary" id="confirm-complete">Complete</button>
+      </div>
+	  </form>
+    </div>
+  </div>
+</div>
 <div id="quotation-details" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" class="modal fade text-left">
     <div role="document" class="modal-dialog">
       <div class="modal-content">
@@ -175,9 +229,101 @@
       </div>
     </div>
 </div>
+<div class="modal fade deliver_invoice_modal" id="deliver_invoice_modal" tabindex="-1" role="dialog"
+     aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form action="{{route('workorder.deliver-invoice')}}" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{trans('file.deliver_invoice')}} <span class="model_type"></span></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    @csrf
+                    <div class="row">
+                        <div class="col-1"></div>
+
+                        <div class="col-10">
+
+                            <div class="form-group">
+                                <label>{{trans('file.id')}}</label>
+                                <input type="text" readonly class="form-control" name="id">
+                            </div>
+                             <div class="row" >
+                                <label class="form-check-label col-md-3" >{{trans('file.is_invoice_deliver')}}</label>
+                                <input type="checkbox" class="form-control  col-md-4" name="is_invoice_deliver" value="1">
+                            </div>
+                            <br>
+
+                            <div class=" form-group">
+                                <label>{{trans('file.invoice_deliver_date')}}</label>
+                                <input type="date" class="form-control" name="invoice_deliver_date">
+                            </div>
+
+
+                        </div>
+
+                        <div class="col-1"></div>
+
+
+                    </div>
+
+
+                </div>
+                <div class="modal-footer">
+                    <div class="col-12 pull-left">
+                        <button type="submit" class="btn btn-brand btn-elevate btn-icon-sm">{{trans('file.submit')}}</button>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
 
 <script type="text/javascript">
+function getbacklog(id,rowid){
+	document.getElementById('backlog-form').action ="workorder/complete/"+rowid;
+	$.ajax({
+			url: 'workorder/getrow/'+rowid,
+			type: "GET",
+			
+		}).done( 
+			function(data){
+				if(data.sale_status == 2){
+					$('#confirm-complete').prop('disabled', true);
+					alert("dispatch status must be completed");
+				}else{
+					$('#confirm-complete').prop('disabled', false);
+					$.ajax({
+							url: 'workorder/getbacklog/'+id,
+							type: "GET",
+							datatype: 'html',
+							
+						}).done( 
 
+							function(data) 
+
+							{
+								$('.backlog-body').html("");
+								if(data.length >0){
+									$.each(data, function(index) {
+										$('.backlog-body').
+										append('<div class="row"><input id= "'+data[index].id+'" type="checkbox" name="backlog[]" value="'+data[index].id+'"><label for="'+data[index].id+'">'+data[index].title+'</label></div>');
+									});
+								}else{
+									$('.backlog-body').html("<h6>No Backlog For this Car</h6>");
+								}
+								
+							});
+				}
+			});
+	
+	
+}
     $("ul#workorder").siblings('a').attr('aria-expanded','true');
     $("ul#workorder").addClass("show");
     $("ul#workorder #workorder-list-menu").addClass("active");
@@ -200,13 +346,26 @@
 
     $("tr.quotation-link td:not(:first-child, :last-child)").on("click", function(){
         var quotation = $(this).parent().data('quotation');
+        console.log(quotation);
         quotationDetails(quotation);
     });
 
     $(".view").on("click", function(){
         var quotation = $(this).parent().parent().parent().parent().parent().data('quotation');
+       // console.log(quotation)
         quotationDetails(quotation);
     });
+    $('#deliver_invoice_modal').on('show.bs.modal', function (e) {
+
+
+            var Id = $(e.relatedTarget).data('id');
+            var is_invoice_deliver = $(e.relatedTarget).data('is_invoice_deliver');
+            var invoice_deliver_date = $(e.relatedTarget).data('invoice_deliver_date');
+            $(e.currentTarget).find('input[name="id"]').val(Id);
+           if(is_invoice_deliver)
+               $(e.currentTarget).find('input[name="is_invoice_deliver"]').attr('checked','true');
+        $(e.currentTarget).find('input[name="invoice_deliver_date"]').val(invoice_deliver_date);
+       });
 
     $("#print-btn").on("click", function(){
           var divToPrint=document.getElementById('quotation-details');
@@ -353,7 +512,7 @@
 
     function quotationDetails(quotation){
         $('input[name="quotation_id"]').val(quotation[13]);
-        var htmltext = '<strong>{{trans("file.Date")}}: </strong>'+quotation[0]+'<br><strong>{{trans("file.reference")}}: </strong>'+quotation[1]+'<br><strong>{{trans("file.Status")}}: </strong>'+quotation[2]+'<br><strong>{{trans("file.completed_at")}}: </strong>'+quotation[25]+'<br><div class="row"><div class="col-md-6"><strong>{{trans("file.From")}}:</strong><br>'+quotation[3]+'<br>'+quotation[4]+'<br>'+quotation[5]+'<br>'+quotation[6]+'<br>'+quotation[7]+'<br>'+quotation[8]+'</div><div class="col-md-6"><div class="float-right"><strong>{{trans("file.To")}}:</strong><br>'+quotation[9]+'<br>'+quotation[10]+'<br>'+quotation[11]+'<br>'+quotation[12]+'</div></div></div>';
+        var htmltext = '<strong>{{trans("file.Date")}}: </strong>'+quotation[0]+'<br><strong>{{trans("file.reference")}}: </strong>'+quotation[1]+'<br><strong>{{trans("file.Status")}}: </strong>'+quotation[2]+'<br><strong>{{trans("file.completed_at")}}: </strong>'+quotation[25]+'<br><strong>Work Order Type: </strong>'+quotation[26]+'<br><div class="row"><div class="col-md-6"><strong>{{trans("file.From")}}:</strong><br>'+quotation[3]+'<br>'+quotation[4]+'<br>'+quotation[5]+'<br>'+quotation[6]+'<br>'+quotation[7]+'<br>'+quotation[8]+'</div><div class="col-md-6"><div class="float-right"><strong>{{trans("file.To")}}:</strong><br>'+quotation[9]+'<br>'+quotation[10]+'<br>'+quotation[11]+'<br>'+quotation[12]+'</div></div></div>';
         $.get('workorder/product_quotation/' + quotation[13], function(data){
             $(".product-quotation-list tbody").remove();
             var name_code = data[0];
@@ -383,7 +542,7 @@
             cols += '<td colspan=4><strong>{{trans("file.Total")}}:</strong></td>';
             cols += '<td>' + quotation[14] + '</td>';
             cols += '<td>' + quotation[15] + '</td>';
-            cols += '<td>' + quotation[16] + '</td>';
+            cols += '<td>' + data["total_price"] + '</td>';
             newRow.append(cols);
             newBody.append(newRow);
 
@@ -397,7 +556,13 @@
             var newRow = $("<tr>");
             cols = '';
             cols += '<td colspan=6><strong>{{trans("file.Order Discount")}}:</strong></td>';
-            cols += '<td>' + quotation[19] + '</td>';
+            cols += '<td>' + data["order_discount"] + '</td>';
+            newRow.append(cols);
+            newBody.append(newRow);
+			var newRow = $("<tr>");
+            cols = '';
+            cols += '<td colspan=6><strong>{{trans("file.Order consumables")}}:</strong></td>';
+            cols += '<td>' + data["consumables"] + '</td>';
             newRow.append(cols);
             newBody.append(newRow);
 
@@ -409,9 +574,10 @@
             {{--newBody.append(newRow);--}}
 
             var newRow = $("<tr>");
+			//var g_total=data["total"] - parseFloat(quotation[20]);
             cols = '';
             cols += '<td colspan=6><strong>{{trans("file.grand total")}}:</strong></td>';
-            cols += '<td>' + quotation[21] + '</td>';
+            cols += '<td>' + data["grand_total"] + '</td>';
             newRow.append(cols);
             newBody.append(newRow);
 

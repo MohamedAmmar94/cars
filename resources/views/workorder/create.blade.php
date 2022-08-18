@@ -39,9 +39,11 @@
                                         </div>
                                     </div>
                                     <div class="col-md-6">
+                                        <input type="hidden" name="biller_id" value="1" >
+
 										<div class="form-group">
 											<label>{{trans('file.workorder_type')}}*</label>
-											<select required name="type" class="selectpicker form-control" data-live-search="true" id="type" data-live-search-style="begins" title=" Work Oreder Type"}} ..">
+											<select required name="type" class="selectpicker form-control" data-live-search="true" id="type" data-live-search-style="begins" title=" Work Oreder Type">
 												<option value="PM">PM</option>
 												<option value="CM">CM</option>
 												<option value="RF">RF</option>
@@ -51,7 +53,7 @@
 									<div class="col-md-6">
 										<div class="form-group">
 											<label>{{trans('file.car_millage')}} *</label>
-											<input type="number" class=" form-control" name="mill_age" required>
+											<input type="number" class=" form-control" name="mill_age"  required>
 										</div>
 									</div>
 
@@ -83,7 +85,7 @@
 
 
 
-
+							<!-- <?php /* ?>
                                 <div class="row">
                                 	<div class="col-md-12">
                                 		<div class="form-group">
@@ -91,6 +93,27 @@
                                 			<textarea rows="5" name="sale_note" class="form-control"></textarea>
                                 		</div>
                                 	</div>
+                                </div><?php */ ?>-->
+								<div class="row">
+                                	<div class="col-md-6">
+                                		<div class="form-group">
+                                			<label>{{trans('file.backlog')}}</label>
+											 
+												  <div class="customer_records" style="margin: 10px 0;">
+												   <input name="id[]" value="new" type="hidden">
+													<input name="backlog[]" class="form-control" 
+														style="width: 92%;display:inline-flex;" placeholder="add backlog" type="text" >
+													<a class="extra-fields-customer btn btn-primary" href="javascript:void(0);">
+														<i class="fa fa-plus-circle"></i>
+														</a>
+												  </div>
+
+												  <div class="customer_records_dynamic">
+												  </div>
+										</div>
+                                	</div>
+									<div class="col-md-6 perivous-km">
+									</div>
                                 </div>
                                 <div class="form-group">
                                     <input type="submit" value="{{trans('file.submit')}}" class="btn btn-primary" id="submit-button">
@@ -156,7 +179,32 @@
 </section>
 
 <script type="text/javascript">
-
+$('#car_id').on('change', function() {
+   var id=this.value; 
+   
+  // console.log(id);
+   $.get('/workorder/getbacklog/' + id, function(data) {
+	   console.log("ffffffffffffffffffffffff");
+	   console.log(data);
+	   $('.customer_records_dynamic').html("");
+	   $('.perivous-km').html("");
+	 //  console.log(data);
+	   if(data.backlogs.length >0){
+			$.each(data.backlogs, function(index) {   
+		
+				$('.customer_records_dynamic').append('<div class="remove" style="margin: 10px 0;"><input name="id[]" value="'+data.backlogs[index].id+'" type="hidden"><input name="backlog[]" class="form-control" style="width: 92%;display:inline-flex;" placeholder="add backlog" type="text"value='+data.backlogs[index].title+'><a href="javascript:void(0);" class="btn btn-danger remove-field btn-remove-customer"><i class="fa fa-minus-circle"></i></a></div>');
+				
+			});
+	   }
+	   if(data.pm !=null){
+		   $('.perivous-km').append('<div class="row"><div class="col-md-2"> PM :</div><div class="col-md-3"> '+data.pm.mill_age+'</div><div class="col-md-6"> '+data.cm.created_at+'</div></div>');
+	   }
+	   if(data.cm !=null){
+		   $('.perivous-km').append('<div class="row"><div class="col-md-2"> CM :</div><div class="col-md-3"> '+data.cm.mill_age+'</div><div class="col-md-6"> '+data.cm.created_at+'</div></div>');
+	   }
+   });
+   
+});
     $("ul#workorder").siblings('a').attr('aria-expanded','true');
     $("ul#workorder").addClass("show");
     $("ul#workorder #workorder-create-menu").addClass("active");
@@ -219,6 +267,26 @@ var pos;
     });
 
 	$(function (){
+		$('.extra-fields-customer').click(function() {
+		  $('.customer_records').clone().appendTo('.customer_records_dynamic');
+		  $('.customer_records_dynamic .customer_records').addClass('single remove');
+		  $('.single .extra-fields-customer').remove();
+		  $('.single').append('<a href="javascript:void(0);" class="btn btn-danger remove-field btn-remove-customer"><i class="fa fa-minus-circle"></i></a>');
+		  $('.customer_records_dynamic > .single').attr("class", "remove");
+
+		  $('.customer_records_dynamic input').each(function() {
+			var count = 0;
+			var fieldname = $(this).attr("name");
+			$(this).attr('name', fieldname );
+			count++;
+		  });
+
+		});
+
+		$(document).on('click', '.remove-field', function(e) {
+		  $(this).parent('.remove').remove();
+		  e.preventDefault();
+		});
     var id = $('#warehouse_id').val();
     $.get('getproduct/' + id, function(data) {
         lims_product_array = [];

@@ -15,6 +15,7 @@ use App\Product;
 use App\Unit;
 use App\Tax;
 use App\Sale;
+use App\Employee;
 use App\Delivery;
 use App\PosSetting;
 use App\Product_Sale;
@@ -57,10 +58,10 @@ class SaleController extends Controller
                 $all_permission[] = 'dummy text';
             
             if(Auth::user()->role_id > 2 && config('staff_access') == 'own')
-                $lims_sale_all = Sale::orderBy('id', 'desc')->where('user_id', Auth::id())->get();
+                $lims_sale_all = Sale::orderBy('id', 'desc')->where('user_id', Auth::id())->where('workorder_status', 5)->get();
             else
-                $lims_sale_all = Sale::orderBy('id', 'desc')->get();
-
+                $lims_sale_all = Sale::where('workorder_status', 5)->orderBy('id', 'desc')->get();
+			//dd($lims_sale_all);
             $lims_gift_card_list = GiftCard::where("is_active", true)->get();
             $lims_pos_setting_data = PosSetting::latest()->first();
             $lims_account_list = Account::where('is_active', true)->get();
@@ -82,9 +83,9 @@ class SaleController extends Controller
         
         
         if(Auth::user()->role_id > 2 && config('staff_access') == 'own')
-            $totalData = Sale::where('user_id', Auth::id())->count();
+            $totalData = Sale::where('user_id', Auth::id())->where('workorder_status', 5)->count();
         else
-            $totalData = Sale::count();
+            $totalData = Sale::where('workorder_status', 5)->count();
 
         $totalFiltered = $totalData;
         if($request->input('length') != -1)
@@ -97,12 +98,12 @@ class SaleController extends Controller
         if(empty($request->input('search.value'))){
             if(Auth::user()->role_id > 2 && config('staff_access') == 'own')
                 $sales = Sale::with('biller', 'customer', 'warehouse', 'user')->offset($start)
-                            ->where('user_id', Auth::id())
+                            ->where('user_id', Auth::id())->where('workorder_status', 5)
                             ->limit($limit)
                             ->orderBy($order, $dir)
                             ->get();
             else
-                $sales = Sale::with('biller', 'customer', 'warehouse', 'user')->offset($start)
+                $sales = Sale::with('biller', 'customer', 'warehouse', 'user')->where('workorder_status', 5)->offset($start)
                             ->limit($limit)
                             ->orderBy($order, $dir)
                             ->get();
@@ -115,7 +116,7 @@ class SaleController extends Controller
                             ->with('biller', 'customer', 'warehouse', 'user')
                             ->join('customers', 'sales.customer_id', '=', 'customers.id')
                             ->whereDate('sales.created_at', '=' , date('Y-m-d', strtotime(str_replace('/', '-', $search))))
-                            ->where('sales.user_id', Auth::id())
+                            ->where('workorder_status', 5)->where('sales.user_id', Auth::id())
                             ->orwhere([
                                 ['sales.reference_no', 'LIKE', "%{$search}%"],
                                 ['sales.user_id', Auth::id()]
@@ -131,7 +132,7 @@ class SaleController extends Controller
                 $totalFiltered = Sale::
                             join('customers', 'sales.customer_id', '=', 'customers.id')
                             ->whereDate('sales.created_at', '=' , date('Y-m-d', strtotime(str_replace('/', '-', $search))))
-                            ->where('sales.user_id', Auth::id())
+                             ->where('workorder_status', 5)->where('sales.user_id', Auth::id())
                             ->orwhere([
                                 ['sales.reference_no', 'LIKE', "%{$search}%"],
                                 ['sales.user_id', Auth::id()]
@@ -147,7 +148,7 @@ class SaleController extends Controller
                             ->with('biller', 'customer', 'warehouse', 'user')
                             ->join('customers', 'sales.customer_id', '=', 'customers.id')
                             ->whereDate('sales.created_at', '=' , date('Y-m-d', strtotime(str_replace('/', '-', $search))))
-                            ->where('sales.user_id', Auth::id())
+                             ->where('workorder_status', 5)->where('sales.user_id', Auth::id())
                             ->orwhere('sales.reference_no', 'LIKE', "%{$search}%")
                             ->orwhere('customers.name', 'LIKE', "%{$search}%")
                             ->offset($start)
@@ -157,7 +158,7 @@ class SaleController extends Controller
                 $totalFiltered = Sale::
                             join('customers', 'sales.customer_id', '=', 'customers.id')
                             ->whereDate('sales.created_at', '=' , date('Y-m-d', strtotime(str_replace('/', '-', $search))))
-                            ->where('sales.user_id', Auth::id())
+                             ->where('workorder_status', 5)->where('sales.user_id', Auth::id())
                             ->orwhere('sales.reference_no', 'LIKE', "%{$search}%")
                             ->orwhere('customers.name', 'LIKE', "%{$search}%")
                             ->count();
@@ -176,17 +177,23 @@ class SaleController extends Controller
                 $nestedData['customer'] = $sale->customer->name;
                 $nestedData['customercar'] = $sale->customercar->chassis;
 
-                if($sale->sale_status == 1){
-                    $nestedData['sale_status'] = '<div class="badge badge-success">'.trans('file.Completed').'</div>';
-                    $sale_status = trans('file.Completed');
-                }
-                elseif($sale->sale_status == 0){
-                    $nestedData['sale_status'] = '<div class="badge badge-danger">'.trans('file.opened_order').'</div>';
+                if($sale->workorder_status == 1){
+                    $nestedData['sale_status'] = '<div class="badge badge-primary">'.trans('file.opened_order').'</div>';
                     $sale_status = trans('file.opened_order');
                 }
-                elseif($sale->sale_status == 2){
-                    $nestedData['sale_status'] = '<div class="badge badge-warning">'.trans('file.Pending').'</div>';
-                    $sale_status = trans('file.Pending');
+                elseif($sale->workorder_status == 2){
+                    $nestedData['sale_status'] = '<div class="badge badge-warning">'.trans('file.waittingstock').'</div>';
+                    $sale_status =trans('file.waittingstock');
+                }
+                elseif($sale->workorder_status == 3){
+                    $nestedData['sale_status'] = '<div class="badge badge-success">'.trans('file.closed').'</div>';
+                    $sale_status = trans('file.closed');
+                }elseif($sale->workorder_status == 4){
+                    $nestedData['sale_status'] = '<div class="badge badge-danger">'.trans('file.cancel').'</div>';
+                    $sale_status = trans('file.cancel');
+                }elseif($sale->workorder_status == 5){
+                    $nestedData['sale_status'] = '<div class="badge badge-success">'.trans('file.Completed').'</div>';
+                    $sale_status = trans('file.Completed');
                 }
 
                 else{
@@ -201,13 +208,19 @@ class SaleController extends Controller
                     $nestedData['payment_status'] = '<div class="badge badge-danger">'.trans('file.Due').'</div>';
                 elseif($sale->payment_status == 3)
                     $nestedData['payment_status'] = '<div class="badge badge-warning">'.trans('file.Partial').'</div>';
-                else
+                elseif($sale->payment_status == 4)
                     $nestedData['payment_status'] = '<div class="badge badge-success">'.trans('file.Paid').'</div>';
+                else
+                    $nestedData['payment_status'] = '<div class="badge badge-info">Null</div>';
+
+
 
                 $nestedData['grand_total'] = number_format($sale->grand_total, 2);
                 $nestedData['paid_amount'] = number_format($sale->paid_amount, 2);
                 $nestedData['due'] = number_format($sale->grand_total - $sale->paid_amount, 2);
-                $nestedData['options'] = '<a href="'.route('sales.edit', ['id' => $sale->id]).'" class="btn btn-success"><i class="fa fa-plus"></i> '.trans('file.Additional').'</a>
+//                <a href="'.route('sales.edit', ['id' => $sale->id]).'" class="btn btn-success"><i class="fa fa-plus"></i> '.trans('file.Additional').'</a>
+                $nestedData['options'] = '<button type="button" class="btn btn-success" 
+				onclick="location.href=\''.route('sales.edit', ['id' => $sale->id]).'\'"> '.trans('file.finish').'</button>
                             <div class="btn-group">
                             <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">'.trans("file.action").'
                               <span class="caret"></span>
@@ -251,7 +264,8 @@ class SaleController extends Controller
                 else
                     $coupon_code = null;
 
-                $nestedData['sale'] = array( '[ "'.date(config('date_format'), strtotime($sale->created_at->toDateString())).'"', ' "'.$sale->reference_no.'"', ' "'.$sale_status.'"', ' "'.$sale->biller->name ??"".'"', ' "'.$sale->biller->company_name ??"".'"', ' "'.$sale->biller->email ??"".'"', ' "'.$sale->biller->phone_number ??"".'"', ' "'.$sale->biller->address ??"".'"', ' "'.$sale->biller->city ??"".'"', ' "'.$sale->customer->name.'"', ' "'.$sale->customer->phone_number.'"', ' "'.$sale->customer->address.'"', ' "'.$sale->customer->city.'"', ' "'.$sale->id.'"', ' "'.$sale->total_tax.'"', ' "'.$sale->total_discount.'"', ' "'.$sale->total_price.'"', ' "'.$sale->order_tax.'"', ' "'.$sale->order_tax_rate.'"', ' "'.$sale->order_discount.'"', ' "'.$sale->shipping_cost.'"', ' "'.$sale->grand_total.'"', ' "'.$sale->paid_amount.'"', ' "'.$sale->sale_note.'"', ' "'.$sale->staff_note.'"', ' "'.$sale->user->name.'"', ' "'.$sale->user->email.'"', ' "'.$sale->warehouse->name.'"', ' "'.$coupon_code.'"', ' "'.$sale->coupon_discount.'"', ' "'.$sale->customercar->chassis.'"]');
+                $nestedData['sale'] = array( '[ "'.date(config('date_format'), strtotime($sale->created_at->toDateString())).'"', ' "'.$sale->reference_no.'"', ' "'.$sale_status.'"', ' "'.$sale->biller->name ??"".'"', ' "'.$sale->biller->company_name ??"".'"', ' "'.$sale->biller->email ??"".'"', ' "'.$sale->biller->phone_number ??"".'"', ' "'.$sale->biller->address ??"".'"', ' "'.$sale->biller->city ??"".'"', ' "'.$sale->customer->name.'"', ' "'.$sale->customer->phone_number.'"', ' "'.$sale->customer->address.'"', ' "'.$sale->customer->city.'"', ' "'.$sale->id.'"', ' "'.$sale->total_tax.'"', ' "'.$sale->total_discount.'"', ' "'.$sale->total_price.'"', ' "'.$sale->order_tax.'"', ' "'.$sale->order_tax_rate.'"', ' "'.$sale->order_discount.'"', ' "'.$sale->shipping_cost.'"', ' "'.$sale->grand_total.'"', ' "'.$sale->paid_amount.'"', ' "'.$sale->sale_note.'"', ' "'.$sale->staff_note.'"', ' "'.$sale->user->name.'"', ' "'.$sale->user->email.'"', ' "'.$sale->warehouse->name.'"', ' "'.$coupon_code.'"', ' "'.$sale->coupon_discount.'"', ' "'.$sale->customercar->chassis.' , '.
+				date('d-m-Y', strtotime($sale->completed_at)).'" ,"'.$sale->consumables.'"]');
                 $data[] = $nestedData;
             }
         }
@@ -1061,8 +1075,10 @@ if(isset($data['quotation_id'])) {
             if($unit_data){
                 $unit = $unit_data->unit_code;
             }
-            else
+            else {
                 $unit = '';
+            }
+
             $product_sale[0][$key] = $product->name . ' [' . $product->code . ']';
             $product_sale[1][$key] = $product_sale_data->qty;
             $product_sale[2][$key] = $unit;
@@ -1070,6 +1086,7 @@ if(isset($data['quotation_id'])) {
             $product_sale[4][$key] = $product_sale_data->tax_rate;
             $product_sale[5][$key] = $product_sale_data->discount;
             $product_sale[6][$key] = $product_sale_data->total;
+
         }
         return $product_sale;
     }
@@ -1277,7 +1294,7 @@ if(isset($data['quotation_id'])) {
             return redirect()->back()->with('not_permitted', 'Sorry! You are not allowed to access this module');
     }
 
-    public function edit($id)
+   public function edit($id)
     {
         $role = Role::find(Auth::user()->role_id);
         if($role->hasPermissionTo('sales-edit')){
@@ -1302,14 +1319,17 @@ if(isset($data['quotation_id'])) {
             $lims_warehouse_list = Warehouse::where('is_active', true)->get();
             $lims_biller_list = Biller::where('is_active', true)->get();
             $lims_tax_list = Tax::where('is_active', true)->get();
+            $lims_employee_list = Employee::where('is_active', 1)->get();
             $lims_sale_data = Sale::find($id);
-            $lims_product_sale_data = Product_Sale::where('sale_id', $id)->get();
-            return view('sale.editstockorder',compact('lims_customer_list', 'lims_warehouse_list', 'lims_biller_list', 'lims_tax_list', 'lims_sale_data','lims_product_sale_data'));
+            $lims_product_sale_data = Product_Sale::with(["product"=>function($q){
+				return $q->where("type","standard");
+			}])->where('sale_id', $id)->where('is_dispatched', 0)->get();
+			
+            return view('sale.editstockorder',compact('lims_customer_list', 'lims_warehouse_list', 'lims_biller_list', 'lims_tax_list', 'lims_sale_data','lims_product_sale_data','lims_employee_list'));
         }
         else
             return redirect()->back()->with('not_permitted', 'Sorry! You are not allowed to access this module');
     }
-
     public function update(Request $request, $id)
     {
         $data = $request->except('document');
@@ -1331,7 +1351,9 @@ if(isset($data['quotation_id'])) {
             $document->move('public/sale/documents', $documentName);
             $data['document'] = $documentName;
         }
-        $balance = $data['grand_total'] - $data['paid_amount'];
+		$paid_amount= $data['paid_amount'] ?? 0;
+        $balance =(float) $data['grand_total'] - (float)$paid_amount;
+		//dd($balance);
         if($balance < 0 || $balance > 0)
             $data['payment_status'] = 2;
         else
@@ -1341,7 +1363,7 @@ if(isset($data['quotation_id'])) {
         $product_id = $data['product_id'];
         $product_code = $data['product_code'];
         $product_variant_id = $data['product_variant_id'];
-        $qty = $data['qty'];
+       // $qty = $data['qty'];
         $sale_unit = $data['sale_unit'];
         $net_unit_price = $data['net_unit_price'];
         $discount = $data['discount'];
@@ -1426,7 +1448,7 @@ if(isset($data['quotation_id'])) {
             if($sale_unit[$key] != 'n/a') {
                 $lims_sale_unit_data = Unit::where('unit_name', $sale_unit[$key])->first();
                 $sale_unit_id = $lims_sale_unit_data->id;
-                if($data['sale_status'] == 1) {
+                /* if($data['sale_status'] == 1) {
                     $new_product_qty = $qty[$key];
                     if ($lims_sale_unit_data->operator == '*') {
                         $new_product_qty = $new_product_qty * $lims_sale_unit_data->operation_value;
@@ -1450,7 +1472,7 @@ if(isset($data['quotation_id'])) {
                     $lims_product_warehouse_data->qty -= $new_product_qty;
                     $lims_product_data->save();
                     $lims_product_warehouse_data->save();
-                }
+                } */
             }
             else
                 $sale_unit_id = 0;
@@ -1474,7 +1496,7 @@ if(isset($data['quotation_id'])) {
 
             $product_sale['sale_id'] = $id ;
             $product_sale['product_id'] = $pro_id;
-            $product_sale['qty'] = $mail_data['qty'][$key] = $qty[$key];
+            //$product_sale['qty'] = $mail_data['qty'][$key] = $qty[$key];
             $product_sale['sale_unit_id'] = $sale_unit_id;
             $product_sale['net_unit_price'] = $net_unit_price[$key];
             $product_sale['discount'] = $discount[$key];
@@ -1498,9 +1520,11 @@ if(isset($data['quotation_id'])) {
             else
                 Product_Sale::create($product_sale);
         }
+		//dd($data);
         $lims_sale_data->update($data);
-        $lims_customer_data = Customer::find($data['customer_id']);
-        $message = 'Sale updated successfully';
+		 $message = 'Sale updated successfully';
+        /* $lims_customer_data = Customer::find($data['customer_id']);
+       
         //collecting mail data
         if($lims_customer_data->email){
             $mail_data['email'] = $lims_customer_data->email;
@@ -1526,15 +1550,17 @@ if(isset($data['quotation_id'])) {
                     $message = 'Sale updated successfully.';
                 }
             }
-        }
-
+        } */
+		app('App\Http\Controllers\StockorderController')->update_total($id);
         return redirect('sales')->with('message', $message);
     }
 
     public function updatestockorder(Request $request, $id)
     {
+		//dd($request);
         $data = $request->except('document');
-        //return dd($data);
+
+        // if document attached
         $document = $request->document;
         if ($document) {
             $v = Validator::make(
@@ -1552,13 +1578,26 @@ if(isset($data['quotation_id'])) {
             $document->move('public/sale/documents', $documentName);
             $data['document'] = $documentName;
         }
+
+
         $balance = $data['grand_total'] - $data['paid_amount'];
         if($balance < 0 || $balance > 0)
             $data['payment_status'] = 2;
         else
             $data['payment_status'] = 4;
+
         $lims_sale_data = Sale::find($id);
-        $lims_product_sale_data = Product_Sale::where('sale_id', $id)->get();
+		/*  //Go to your project in vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php
+			//In line number 1337, you can found below code inside the addWhereExistsQuery method
+			//$this->wheres[] = compact('type', 'operator', 'query', 'boolean');
+         $lims_product_sale_data = Product_Sale::whereHas("product" ,function($q){
+				 $q->where("type","like","standard");
+			})->where('sale_id', $id)->where("is_dispatched",0)->get(); */
+			$lims_product_sale_data =DB::table('product_sales')
+			->join('products', 'products.id', '=', 'product_sales.product_id')
+			->where('product_sales.sale_id', $id)->where("product_sales.is_dispatched",0)
+			->where("products.type","standard")->get();
+		//dd($lims_product_sale_data); 
         $product_id = $data['product_id'];
         $product_code = $data['product_code'];
         $product_variant_id = $data['product_variant_id'];
@@ -1571,57 +1610,63 @@ if(isset($data['quotation_id'])) {
         $total = $data['subtotal'];
         $old_product_id = [];
         $product_sale = [];
+        $received_person = $data['received_person'];
+
         foreach ($lims_product_sale_data as  $key => $product_sale_data) {
             $old_product_id[] = $product_sale_data->product_id;
-            $old_product_variant_id[] = null;
-            $lims_product_data = Product::find($product_sale_data->product_id);
+			$old_product_variant_id[] = null;
+            $lims_product_data = Product::where("id",$product_sale_data->product_id)->where("type","standard")->first();
+			if(!empty($lims_product_data)){
+				
+				//complete
+				if( ($lims_sale_data->sale_status == 1) && ($lims_product_data->type == 'combo') ) {
+					$product_list = explode(",", $lims_product_data->product_list);
+					$qty_list = explode(",", $lims_product_data->qty_list);
 
-            if( ($lims_sale_data->sale_status == 1) && ($lims_product_data->type == 'combo') ) {
-                $product_list = explode(",", $lims_product_data->product_list);
-                $qty_list = explode(",", $lims_product_data->qty_list);
+					foreach ($product_list as $index=>$child_id) {
+						$child_data = Product::find($child_id);
+						$child_warehouse_data = Product_Warehouse::where([
+							['product_id', $child_id],
+							['warehouse_id', $lims_sale_data->warehouse_id ],
+						])->first();
 
-                foreach ($product_list as $index=>$child_id) {
-                    $child_data = Product::find($child_id);
-                    $child_warehouse_data = Product_Warehouse::where([
-                        ['product_id', $child_id],
-                        ['warehouse_id', $lims_sale_data->warehouse_id ],
-                    ])->first();
 
-                    $child_data->qty += $product_sale_data->qty * $qty_list[$index];
-                    $child_warehouse_data->qty += $product_sale_data->qty * $qty_list[$index];
+						$child_data->qty += $product_sale_data->qty * $qty_list[$index];
+						$child_warehouse_data->qty += $product_sale_data->qty * $qty_list[$index];
 
-                    $child_data->save();
-                    $child_warehouse_data->save();
-                }
-            }
-            elseif( ($lims_sale_data->sale_status == 1) && ($product_sale_data->sale_unit_id != 0)) {
-                $old_product_qty = $product_sale_data->qty;
-                $lims_sale_unit_data = Unit::find($product_sale_data->sale_unit_id);
-                if ($lims_sale_unit_data->operator == '*')
-                    $old_product_qty = $old_product_qty * $lims_sale_unit_data->operation_value;
-                else
-                    $old_product_qty = $old_product_qty / $lims_sale_unit_data->operation_value;
-                if($product_sale_data->variant_id) {
-                    $lims_product_variant_data = ProductVariant::select('id', 'qty')->FindExactProduct($product_sale_data->product_id, $product_sale_data->variant_id)->first();
-                    $lims_product_warehouse_data = Product_Warehouse::FindProductWithVariant($product_sale_data->product_id, $product_sale_data->variant_id, $lims_sale_data->warehouse_id)
-                        ->first();
-                    $old_product_variant_id[$key] = $lims_product_variant_data->id;
-                    $lims_product_variant_data->qty += $old_product_qty;
-                    $lims_product_variant_data->save();
-                }
-                else
-                    $lims_product_warehouse_data = Product_Warehouse::FindProductWithoutVariant($product_sale_data->product_id, $lims_sale_data->warehouse_id)
-                        ->first();
-                $lims_product_data->qty += $old_product_qty;
-                $lims_product_warehouse_data->qty += $old_product_qty;
-                $lims_product_data->save();
-                $lims_product_warehouse_data->save();
-            }
-            if($product_sale_data->variant_id && !(in_array($old_product_variant_id[$key], $product_variant_id)) ){
-                $product_sale_data->delete();
-            }
-            elseif( !(in_array($old_product_id[$key], $product_id)) )
-                $product_sale_data->delete();
+						$child_data->save();
+						$child_warehouse_data->save();
+					}
+				}
+				elseif( ($lims_sale_data->sale_status == 1) && ($product_sale_data->sale_unit_id != 0)) {
+					$old_product_qty = $product_sale_data->qty;
+					$lims_sale_unit_data = Unit::find($product_sale_data->sale_unit_id);
+					if ($lims_sale_unit_data->operator == '*')
+						$old_product_qty = $old_product_qty * $lims_sale_unit_data->operation_value;
+					else
+						$old_product_qty = $old_product_qty / $lims_sale_unit_data->operation_value;
+					if($product_sale_data->variant_id) {
+						$lims_product_variant_data = ProductVariant::select('id', 'qty')->FindExactProduct($product_sale_data->product_id, $product_sale_data->variant_id)->first();
+						$lims_product_warehouse_data = Product_Warehouse::FindProductWithVariant($product_sale_data->product_id, $product_sale_data->variant_id, $lims_sale_data->warehouse_id)
+							->first();
+						$old_product_variant_id[$key] = $lims_product_variant_data->id;
+						$lims_product_variant_data->qty += $old_product_qty;
+						$lims_product_variant_data->save();
+					}
+					else
+						$lims_product_warehouse_data = Product_Warehouse::FindProductWithoutVariant($product_sale_data->product_id, $lims_sale_data->warehouse_id)
+							->first();
+					$lims_product_data->qty += $old_product_qty;
+					$lims_product_warehouse_data->qty += $old_product_qty;
+					$lims_product_data->save();
+					$lims_product_warehouse_data->save();
+				}
+				if($product_sale_data->variant_id && !(in_array($old_product_variant_id[$key], $product_variant_id)) ){
+					$product_sale_data->delete();
+				}
+				elseif( !(in_array($old_product_id[$key], $product_id)) )
+					$product_sale_data->delete();
+			}
         }
         foreach ($product_id as $key => $pro_id) {
             $lims_product_data = Product::find($pro_id);
@@ -1632,14 +1677,13 @@ if(isset($data['quotation_id'])) {
 
                 foreach ($product_list as $index=>$child_id) {
                     $child_data = Product::find($child_id);
-                    $child_warehouse_data = Product_Warehouse::where([
+                   $child_warehouse_data = Product_Warehouse::where([
                         ['product_id', $child_id],
                         ['warehouse_id', $data['warehouse_id'] ],
                     ])->first();
 
                     $child_data->qty -= $qty[$key] * $qty_list[$index];
                     $child_warehouse_data->qty -= $qty[$key] * $qty_list[$index];
-
                     $child_data->save();
                     $child_warehouse_data->save();
                 }
@@ -1701,6 +1745,8 @@ if(isset($data['quotation_id'])) {
             $product_sale['discount'] = $discount[$key];
             $product_sale['tax_rate'] = $tax_rate[$key];
             $product_sale['tax'] = $tax[$key];
+            $product_sale['is_dispatched'] = 1;
+            $product_sale['received_person'] = $received_person;
             $product_sale['total'] = $mail_data['total'][$key] = $total[$key];
 
             if($product_sale['variant_id'] && in_array($product_variant_id[$key], $old_product_variant_id)) {
@@ -1781,8 +1827,10 @@ if(isset($data['quotation_id'])) {
         $lims_customer_data = Customer::find($lims_sale_data->customer_id);
         $lims_sale_data->paid_amount += $data['amount'];
         $balance = $lims_sale_data->grand_total - $lims_sale_data->paid_amount;
-        if($balance > 0 || $balance < 0)
+        if($balance < 0)
             $lims_sale_data->payment_status = 2;
+        elseif ($balance > 0)
+            $lims_sale_data->payment_status = 3;
         elseif ($balance == 0)
             $lims_sale_data->payment_status = 4;
         $lims_sale_data->save();
@@ -1975,8 +2023,10 @@ if(isset($data['quotation_id'])) {
         $amount_dif = $lims_payment_data->amount - $data['edit_amount'];
         $lims_sale_data->paid_amount = $lims_sale_data->paid_amount - $amount_dif;
         $balance = $lims_sale_data->grand_total - $lims_sale_data->paid_amount;
-        if($balance > 0 || $balance < 0)
+        if($balance < 0)
             $lims_sale_data->payment_status = 2;
+        elseif ($balance > 0)
+            $lims_sale_data->payment_status = 3;
         elseif ($balance == 0)
             $lims_sale_data->payment_status = 4;
         $lims_sale_data->save();

@@ -30,6 +30,7 @@
                     <th>{{trans('file.Email')}}</th>
                     <th>{{trans('file.Phone Number')}}</th>
                     <th>{{trans('file.Tax Number')}}</th>
+                    <th>{{trans('file.due_period')}}</th>
                     <th>{{trans('file.Address')}}</th>
                     <th>{{trans('file.Balance')}}</th>
                     <th class="not-exported">{{trans('file.action')}}</th>
@@ -48,6 +49,7 @@
                     <td>{{ $customer->email}}</td>
                     <td>{{ $customer->phone_number}}</td>
                     <td>{{ $customer->tax_no}}</td>
+                    <td>{{ $customer->due_period}}</td>
                     <td>{{ $customer->address}}, {{ $customer->city}}@if($customer->country) {{','. $customer->country}}@endif</td>
                     <td>{{ number_format($customer->deposit - $customer->expense, 2) }}</td>
                     <td>
